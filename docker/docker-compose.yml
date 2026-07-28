@@ -1,0 +1,31 @@
+name: inquests
+
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: ./docker/app.Dockerfile
+    depends_on:
+      - db
+    volumes:
+      - ../app/:/usr/src/app/
+    env_file: .env.dev
+    ports:
+      - "8000:8000"
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+  db:
+    image: postgres:15.4
+    volumes:
+      - db_data:/var/lib/postgresql/data/
+    environment:
+      # These values should match those passed to Django (i.e., .env.dev).
+      POSTGRES_DB: inquests
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/
+    ports:
+      - "5432:5432"
+
+volumes:
+  db_data:

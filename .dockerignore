@@ -1,0 +1,18 @@
+# Ignore everything
+*
+
+# Allow files and directories
+!/app
+!/src
+!/docker
+!/pyproject.toml
+!/uv.lock
+!/README.md
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
