@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.functions import Lower
 
 
 class Inquest(models.Model):
@@ -27,8 +28,20 @@ class Inquest(models.Model):
         on_delete=models.PROTECT,
     )
 
+    groups = models.ManyToManyField(
+        'InquestGroup',
+        related_name='inquests',
+        blank=True,
+    )
+
     keywords = models.ManyToManyField(
         'InquestKeyword',
+        related_name='inquests',
+        blank=True,
+    )
+
+    recommendation_recipients = models.ManyToManyField(
+        'Party',
         related_name='inquests',
         blank=True,
     )
@@ -53,7 +66,15 @@ class Inquest(models.Model):
 class InquestDocument(models.Model):
     id = models.AutoField(primary_key=True)
 
+    class DocumentType(models.TextChoices):
+        VERDICT_AND_EXPLANATION = 'VERDICT_AND_EXPLANATION', 'Verdict & Explanation'
+        RESPONSE_TO_RECOMMENDATIONS = 'RESPONSE_TO_RECOMMENDATIONS', 'Response to Recommendations'
+        STANDING_RULING = 'STANDING_RULING', 'Standing Ruling'
+        SCOPE = 'SCOPE', 'Scope'
+        MEDIA = 'MEDIA', 'Media'
+
     name = models.CharField(max_length=255)
+    document_type = models.CharField(max_length=50, choices=DocumentType.choices)
     date = models.DateField()
     source = models.CharField(max_length=255)
     link = models.CharField(max_length=255)
@@ -128,12 +149,43 @@ class CauseOfDeath(models.Model):
         return self.name
 
 
-class RecommendationRecipient(models.Model):
+class PartyType(models.Model):
     id = models.AutoField(primary_key=True)
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
+    description = models.CharField(max_length=500, blank=True)
 
-    inquests = models.ManyToManyField('Inquest', blank=True)
+    def __str__(self):
+        return self.name
+
+
+class Party(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    name = models.CharField(max_length=255, blank=True)
+    also_known_as = models.CharField(max_length=255, blank=True)
+    notes = models.CharField(max_length=1000, blank=True)
+
+    party_type = models.ForeignKey(
+        'PartyType',
+        related_name='party',
+        on_delete=models.PROTECT,
+    )
+
+    class Meta:
+        verbose_name_plural = 'parties'
+
+        constraints = [
+            models.UniqueConstraint(
+                Lower("name"),
+                "party_type",
+                name="party_unique_lower_name_party_type"),
+        ]
+
+    def __str__(self):
+        if not self.name:
+            return str(self.party_type)
+        return f"{self.party_type}-{self.name}"
 
 
 class InquestKeyword(models.Model):
@@ -147,7 +199,7 @@ class InquestKeyword(models.Model):
         POLICE = 'POLICE', 'Police'
         WORKPLACE = 'WORKPLACE', 'Workplace'
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=True)
     category = models.CharField(max_length=255, choices=Category.choices)
     description = models.CharField(max_length=255, blank=True)
     synonyms = models.CharField(max_length=255, blank=True)
@@ -155,6 +207,15 @@ class InquestKeyword(models.Model):
     class Meta:
         verbose_name = 'keyword'
         verbose_name_plural = 'keywords'
+
+        constraints = [
+            models.UniqueConstraint(Lower("name"), "category", name="inquest_keyword_unique_lower_name_category"),
+        ]
+
+    def __str__(self):
+        if not self.name:
+            return self.category
+        return f"{self.category}-{self.name}"
 
 
 class PresidingOfficer(models.Model):
@@ -165,3 +226,17 @@ class PresidingOfficer(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class InquestGroup(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    name = models.CharField(max_length=255)
+    notes = models.CharField(max_length=5000)
+
+    class Meta:
+        verbose_name = 'group'
+        verbose_name_plural = 'groups'
+
+    def __str__(self):
+        return self.name

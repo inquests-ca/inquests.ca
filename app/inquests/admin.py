@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import Inquest, InquestDocument, Deceased, RecommendationRecipient, InquestKeyword, PresidingOfficer, \
-    CauseOfDeath
+from .models import Inquest, InquestDocument, Deceased, InquestKeyword, PresidingOfficer, \
+    CauseOfDeath, InquestGroup, PartyType, Party, Party
 
 
 @admin.register(Inquest)
@@ -17,7 +17,7 @@ class InquestAdmin(admin.ModelAdmin):
         'summary',
         'key_case_reason',
     )
-    filter_horizontal = ('keywords',)
+    filter_horizontal = ('keywords', 'groups', 'recommendation_recipients')
 
     @admin.display(description='name')
     def display_name(self, obj: Inquest) -> str:
@@ -29,6 +29,7 @@ class InquestDocumentAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'name',
+        'document_type',
         'date',
         'inquest',
     )
@@ -36,7 +37,7 @@ class InquestDocumentAdmin(admin.ModelAdmin):
         'name',
         'source',
     )
-    list_filter = ('date',)
+    list_filter = ('date', 'document_type')
     ordering = ('-date',)
     autocomplete_fields = ('inquest',)
 
@@ -46,9 +47,9 @@ class DeceasedAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'first_name',
-        'middle_name',
         'last_name',
-        'date_of_death',
+        'cause',
+        'manner',
         'inquest',
     )
     search_fields = (
@@ -56,7 +57,7 @@ class DeceasedAdmin(admin.ModelAdmin):
         'cause',
         'manner',
     )
-    list_filter = ('date_of_death', 'sex')
+    list_filter = ('cause', 'manner')
     ordering = ('-date_of_death',)
     autocomplete_fields = ('inquest',)
 
@@ -72,16 +73,29 @@ class CauseOfDeathAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(RecommendationRecipient)
-class RecommendationRecipientAdmin(admin.ModelAdmin):
+@admin.register(PartyType)
+class InquestPartyTypeAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'name',
+        'description',
+    )
+    search_fields = ('name',)
+
+
+@admin.register(Party)
+class InquestRecipientAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'name',
+        'party_type',
+        'also_known_as',
     )
     search_fields = (
         'name',
+        'also_known_as',
     )
-    filter_horizontal = ('inquests',)
+    list_filter = ('party_type',)
 
 
 @admin.register(InquestKeyword)
@@ -91,6 +105,16 @@ class InquestKeywordAdmin(admin.ModelAdmin):
         'name',
         'category',
         'description',
+    )
+    search_fields = ('name',)
+
+
+@admin.register(InquestGroup)
+class InquestGroupAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'name',
+        'notes',
     )
     search_fields = ('name',)
 

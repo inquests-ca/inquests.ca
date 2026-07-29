@@ -1,8 +1,9 @@
+import re
 from typing import Optional
 
-from authorities.models import Authority
+from authorities.models import Authority, AuthorityGroup, AuthorityKeyword
 from common.models import Jurisdiction
-from importdata.helpers import clean_name, strip_html, parse_yes_no
+from importdata.helpers import clean_name, strip_html, parse_yes_no, parse_case_keywords, parse_case_groups
 
 
 def import_authority(data: dict) -> Optional[Authority]:
@@ -31,4 +32,32 @@ def import_authority(data: dict) -> Optional[Authority]:
         jurisdiction=jurisdiction,
     )
 
+    authority.keywords.set(get_keywords(data.get('51_CaseIssues_e')))
+    authority.groups.set(get_groups(data.get('116_RelatedCaseGroups_e')))
+
     return authority
+
+
+def get_keywords(value: str) -> list[AuthorityKeyword]:
+    keywords = []
+    for category, name in parse_case_keywords(value):
+        try:
+            keywords.append(AuthorityKeyword.objects.get(category=category, name=name))
+        except AuthorityKeyword.DoesNotExist:
+            raise ValueError(f'Authority keyword not found: {category}-{name}')
+    return keywords
+
+
+def get_groups(value: str) -> list[AuthorityGroup]:
+    groups = []
+    for name in parse_case_groups(value, 'Authorities - '):
+        try:
+            groups.append(AuthorityGroup.objects.get(name=name))
+        except AuthorityGroup.DoesNotExist:
+            raise ValueError(f'Authority group not found: {name}')
+    return groups
+
+
+def remove_trailing_year(name: str) -> str:
+    trailing_year_re = re.compile(r'\s+\[[^\]]+]$')
+    return trailing_year_re.sub("", name)

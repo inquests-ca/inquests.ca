@@ -27,6 +27,6 @@ def import_deceased(data: dict) -> Optional[Deceased]:
         date_of_death=parse_date(data['25_DateDied_v']),
         sex=data["22a_Sex_Code_c"],
         cause=cause_of_death,
-        manner=data["44_Manner_e"],
+        manner=data["44_Manner_e"].upper(),
         inquest=inquest,
     )

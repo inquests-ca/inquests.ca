@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Authority, AuthorityDocument, AuthorityKeyword
+from .models import Authority, AuthorityDocument, AuthorityKeyword, AuthorityGroup
 
 
 @admin.register(Authority)
@@ -9,6 +9,7 @@ class AuthorityAdmin(admin.ModelAdmin):
         'id',
         'name',
         'overview',
+        'jurisdiction'
     )
     search_fields = (
         'name',
@@ -18,25 +19,10 @@ class AuthorityAdmin(admin.ModelAdmin):
         'quotes',
         'key_case_reason',
     )
+    list_filter = ('jurisdiction',)
     ordering = ('name',)
     autocomplete_fields = ('authority_citations', 'authority_related')
-    filter_horizontal = ('keywords',)
-
-    fieldsets = (
-        (None, {
-            'fields': (
-                'name',
-                'overview',
-                'summary',
-            )
-        }),
-        ('Additional details', {
-            'fields': ('notes', 'quotes', 'key_case_reason'),
-        }),
-        ('Relations', {
-            'fields': ('authority_citations', 'authority_related'),
-        }),
-    )
+    filter_horizontal = ('keywords', 'groups')
 
 
 @admin.register(AuthorityDocument)
@@ -44,6 +30,8 @@ class AuthorityDocumentAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'name',
+        'document_type',
+        'source',
         'date',
         'authority',
     )
@@ -51,7 +39,7 @@ class AuthorityDocumentAdmin(admin.ModelAdmin):
         'name',
         'source',
     )
-    list_filter = ('date',)
+    list_filter = ('document_type',)
     ordering = ('-date',)
     autocomplete_fields = ('authority',)
 
@@ -63,5 +51,15 @@ class AuthorityKeywordAdmin(admin.ModelAdmin):
         'name',
         'category',
         'description',
+    )
+    search_fields = ('name',)
+
+
+@admin.register(AuthorityGroup)
+class AuthorityGroupAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'name',
+        'notes',
     )
     search_fields = ('name',)

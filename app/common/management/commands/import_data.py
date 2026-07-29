@@ -4,22 +4,32 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction, DataError
 
 from importdata.import_authority import import_authority
+from importdata.import_authority_documents import import_authority_document
 from importdata.import_cause_of_death import import_cause_of_death
 from importdata.import_deceased import import_deceased
+from importdata.import_group import import_group
 from importdata.import_inquest import import_inquest
+from importdata.import_inquest_documents import import_inquest_document
 from importdata.import_jurisdiction import import_jurisdiction
 from importdata.import_keyword import import_keyword
+from importdata.import_party_type import import_party_type
 from importdata.import_presiding_officer import import_presiding_officer
+from importdata.import_party import import_party
 
 
 IMPORT_FUNCTIONS = {
     'authority': import_authority,
+    'authority_document': import_authority_document,
     'inquest': import_inquest,
+    'inquest_document': import_inquest_document,
     'deceased': import_deceased,
     'cause_of_death': import_cause_of_death,
     'jurisdiction': import_jurisdiction,
     'presiding_officer': import_presiding_officer,
     'keyword': import_keyword,
+    'group': import_group,
+    'party_type': import_party_type,
+    'party': import_party,
 }
 
 
