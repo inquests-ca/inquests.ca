@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Inquests.ca{% endblock %}</title>
+    <style>
+        :root {
+            --accent-red: #d6006d;
+            --accent-blue: #3f51b5;
+            --ink: #1a1a1a;
+            --text-muted: #6b6b6b;
+            --border: #e2e2e2;
+            --bg: #ffffff;
+            --bg-subtle: #fafafa;
+            --bg-page: #f9f9f9;
+            --radius: 4px;
+            --radius-box: 6px;
+            --shadow: 0 2px 5px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background: var(--bg-page);
+            color: var(--ink);
+            font-size: 15px;
+        }
+
+        a { color: inherit; }
+
+        /* ---- site header ---- */
+
+        header.site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.1rem 2rem;
+            background: var(--bg);
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand {
+            font-size: 1.4rem;
+            font-weight: 300;
+            text-decoration: none;
+            color: var(--ink);
+            letter-spacing: -0.01em;
+        }
+
+        .brand .dot-ca { color: inherit; }
+
+        nav.site-nav {
+            display: flex;
+            align-items: center;
+            gap: 1.75rem;
+        }
+
+        nav.site-nav a.nav-link {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--text-muted);
+        }
+
+        nav.site-nav a.nav-link:hover { color: var(--ink); }
+
+        .btn-login {
+            display: inline-block;
+            border: 1px solid var(--ink);
+            border-radius: 999px;
+            padding: 0.45rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--ink);
+        }
+
+        .btn-login:hover { background: var(--ink); color: #fff; }
+
+        .logout-form { display: inline-block; margin: 0; }
+
+        button.btn-login {
+            background: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        /* ---- layout ---- */
+
+        .layout {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            padding: 1.75rem 2rem;
+        }
+
+        aside.sidebar {
+            width: 17rem;
+            flex: none;
+            padding: 1.75rem 1.5rem;
+            background: var(--bg);
+            border-radius: var(--radius-box);
+            box-shadow: var(--shadow);
+        }
+
+        main.content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .results-box {
+            background: var(--bg);
+            border-radius: var(--radius-box);
+            box-shadow: var(--shadow);
+            padding: 0.5rem 1.75rem 1.5rem;
+        }
+
+        /* ---- sidebar: type toggle ---- */
+
+        .type-toggle {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .type-toggle a {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            text-decoration: none;
+            color: var(--ink);
+            font-size: 1.05rem;
+        }
+
+        .type-toggle .dot {
+            width: 1.05rem;
+            height: 1.05rem;
+            border-radius: 50%;
+            border: 2px solid #b5b5b5;
+            flex: none;
+        }
+
+        .type-toggle a.active .dot {
+            border-color: var(--accent-red);
+            background: radial-gradient(circle, var(--accent-red) 42%, transparent 46%);
+        }
+
+        .type-toggle a.active { font-weight: 600; }
+
+        /* ---- sidebar: search form ---- */
+
+        .search-form .field {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-form label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .search-form input[type="text"],
+        .search-form input[type="password"],
+        .search-form select {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.55rem 0.7rem;
+            font-size: 0.9rem;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: inherit;
+        }
+
+        .search-form select[multiple] {
+            padding: 0.35rem;
+        }
+
+        .search-form option {
+            padding: 0.3rem 0.4rem;
+        }
+
+        .search-form input[type="text"]:focus,
+        .search-form input[type="password"]:focus,
+        .search-form select:focus {
+            outline: none;
+            border-color: #b5b5b5;
+            box-shadow: 0 0 0 3px var(--bg-subtle);
+        }
+
+        .field-errors {
+            color: var(--accent-red);
+            font-size: 0.82rem;
+            margin: 0.4rem 0 0;
+        }
+
+        /* ---- login page ---- */
+
+        .login-layout {
+            display: flex;
+            justify-content: center;
+            padding: 3.5rem 2rem;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 22rem;
+            background: var(--bg);
+            border-radius: var(--radius-box);
+            box-shadow: var(--shadow);
+            padding: 2rem 1.75rem;
+        }
+
+        .login-box h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0 0 1.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            border: none;
+            border-radius: var(--radius);
+            padding: 0.65rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            cursor: pointer;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            color: var(--ink);
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn:hover { background: #f0f0f0; }
+
+        .btn-primary {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            color: var(--ink);
+        }
+
+        .search-form .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-top: 1.5rem;
+        }
+
+        /* ---- content header ---- */
+
+        .content-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .content-header h1 {
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        /* ---- results table ---- */
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        thead th {
+            display: none;
+        }
+
+        tbody td {
+            padding: 1.1rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            vertical-align: top;
+        }
+
+        tbody tr:first-child td { border-top: 1px solid var(--border); }
+
+        .result-name {
+            display: block;
+            color: var(--accent-blue);
+            font-size: 1.05rem;
+            text-decoration: none;
+            margin-bottom: 0.3rem;
+        }
+
+        .result-name:hover { text-decoration: underline; }
+
+        .result-meta {
+            color: var(--ink);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .result-meta .muted { color: var(--text-muted); }
+
+        .key-case-cell {
+            width: 7rem;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .key-case-tag {
+            color: var(--accent-red);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 3rem 1rem !important;
+        }
+
+        /* ---- pagination ---- */
+
+        .pagination {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .pagination a, .pagination span.disabled {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .pagination a { color: var(--ink); }
+        .pagination a:hover { border-color: var(--ink); background: var(--bg-subtle); }
+        .pagination span.disabled { color: #c7c7c7; }
+
+        /* ---- detail page ---- */
+
+        .detail-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-top: 1.25rem;
+        }
+
+        .detail-header h1 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .detail-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin: 0.35rem 0 0;
+        }
+
+        .detail-section {
+            padding: 1.5rem 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .detail-section:first-of-type {
+            border-top: none;
+            padding-top: 1rem;
+        }
+
+        .detail-section h2 {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin: 0 0 0.85rem;
+        }
+
+        .detail-section p {
+            margin: 0 0 0.75rem;
+            line-height: 1.6;
+            font-size: 0.92rem;
+        }
+
+        .detail-section p:last-child { margin-bottom: 0; }
+
+        .detail-facts {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+            gap: 1.1rem 1.5rem;
+            margin: 0;
+        }
+
+        .detail-facts dt {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+        }
+
+        .detail-facts dd {
+            margin: 0;
+            font-size: 0.92rem;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            display: inline-block;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--ink);
+        }
+
+        .detail-section table tbody tr:first-child td { border-top: none; }
+
+        @media (max-width: 48rem) {
+            .layout { flex-direction: column; }
+            aside.sidebar { width: 100%; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header class="site-header">
+        <a href="{% url 'inquest-list' %}" class="brand">Inquests<span class="dot-ca">.ca</span></a>
+        <nav class="site-nav">
+            <a href="#" class="nav-link">Terms of Use</a>
+            <a href="#" class="nav-link">Help</a>
+            {% if user.is_authenticated %}
+            <span class="nav-link">{{ user.get_username }}</span>
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn-login">Log Out</button>
+            </form>
+            {% else %}
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn-login">Log In</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    {% block layout %}
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="type-toggle">
+                <a href="{% url 'authority-list' %}" class="{% if active_tab == 'authorities' %}active{% endif %}">
+                    <span class="dot"></span> Authorities
+                </a>
+                <a href="{% url 'inquest-list' %}" class="{% if active_tab == 'inquests' %}active{% endif %}">
+                    <span class="dot"></span> Inquests
+                </a>
+            </div>
+
+            {% block sidebar %}{% endblock %}
+        </aside>
+
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% endblock %}
+</body>
+</html>

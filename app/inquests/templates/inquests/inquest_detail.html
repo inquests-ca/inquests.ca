@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}{{ display_name }} | Inquests.ca{% endblock %}
+
+{% block layout %}
+<div class="layout">
+    <main class="content">
+        {% block content %}
+    <div class="results-box">
+        <div class="detail-header">
+            <h1>{{ display_name }}</h1>
+            {% if key_case_reason %}<span class="key-case-tag">Key Case</span>{% endif %}
+        </div>
+        <dl class="detail-facts" style="padding-bottom: 1.25rem;">
+            <div>
+                <dt>Jurisdiction</dt>
+                <dd>{{ jurisdiction|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt>Presiding Officer</dt>
+                <dd>{{ presiding_officer|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt>Dates</dt>
+                <dd>
+                    {% if start_date %}{{ start_date }}{% if end_date and end_date != start_date %} &ndash; {{ end_date }}{% endif %}{% else %}Date pending{% endif %}
+                </dd>
+            </div>
+            <div>
+                <dt>Sitting Days</dt>
+                <dd>{{ sitting_days|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt>Recommendations</dt>
+                <dd>{{ recommendation_count|default:"—" }}</dd>
+            </div>
+        </dl>
+
+        {% if overview %}
+        <div class="detail-section">
+            <h2>Overview</h2>
+            <p>{{ overview }}</p>
+        </div>
+        {% endif %}
+
+        {% if summary %}
+        <div class="detail-section">
+            <h2>Summary</h2>
+            <p>{{ summary }}</p>
+        </div>
+        {% endif %}
+
+        {% if key_case_reason %}
+        <div class="detail-section">
+            <h2>Key Case Reason</h2>
+            <p>{{ key_case_reason }}</p>
+        </div>
+        {% endif %}
+
+        {% if response_to_recommendations %}
+        <div class="detail-section">
+            <h2>Response to Recommendations</h2>
+            <p>{{ response_to_recommendations }}</p>
+        </div>
+        {% endif %}
+
+        {% if keywords %}
+        <div class="detail-section">
+            <h2>Keywords</h2>
+            <div class="tag-list">
+                {% for keyword in keywords %}<span class="tag">{{ keyword }}</span>{% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if groups %}
+        <div class="detail-section">
+            <h2>Related Groups</h2>
+            <div class="tag-list">
+                {% for group in groups %}<span class="tag">{{ group }}</span>{% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if recommendation_recipients %}
+        <div class="detail-section">
+            <h2>Recommendation Recipients</h2>
+            <div class="tag-list">
+                {% for recipient in recommendation_recipients %}<span class="tag">{{ recipient }}</span>{% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="detail-section">
+            <h2>Deceased{% if deceased %} ({{ deceased|length }}){% endif %}</h2>
+            {% if deceased %}
+            <table>
+                <tbody>
+                    {% for person in deceased %}
+                    <tr>
+                        <td>
+                            <span class="result-name">{{ person.display_name }}</span>
+                            <div class="result-meta">
+                                <span class="muted">
+                                    {% if person.age %}Age {{ person.age }} &middot; {% endif %}{{ person.sex }} &middot; {{ person.manner }}
+                                </span>
+                                {% if person.reason_for_inquest %}<br>{{ person.reason_for_inquest }}{% endif %}
+                                {% if person.cause %}<br><span class="muted">Cause: {{ person.cause }}{% if person.cause_description %} &mdash; {{ person.cause_description }}{% endif %}</span>{% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="muted">No deceased records found.</p>
+            {% endif %}
+        </div>
+
+        <div class="detail-section">
+            <h2>Documents{% if documents %} ({{ documents|length }}){% endif %}</h2>
+            {% if documents %}
+            <table>
+                <tbody>
+                    {% for document in documents %}
+                    <tr>
+                        <td>
+                            {% if document.link %}
+                            <a class="result-name" href="{{ document.link }}" target="_blank" rel="noopener">{{ document.name }}</a>
+                            {% else %}
+                            <span class="result-name">{{ document.name }}</span>
+                            {% endif %}
+                            <div class="result-meta">
+                                <span class="muted">{{ document.document_type }}{% if document.date %} &middot; {{ document.date }}{% endif %}{% if document.source %} &middot; {{ document.source }}{% endif %}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="muted">No documents found.</p>
+            {% endif %}
+        </div>
+    </div>
+        {% endblock %}
+    </main>
+</div>
+{% endblock %}

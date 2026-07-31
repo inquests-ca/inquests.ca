@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Authorities | Inquests.ca{% endblock %}
+
+{% block sidebar %}
+    <form method="get" class="search-form">
+        <div class="field">
+            <label for="q">Search</label>
+            <input type="text" id="q" name="q" value="{{ query }}" placeholder="Enter search terms">
+        </div>
+        <div class="field">
+            <label for="keywords">Keywords</label>
+            <select id="keywords" name="keywords" multiple size="8">
+                {% for keyword in keywords %}
+                <option value="{{ keyword.id }}" {% if keyword.id in selected_keyword_ids %}selected{% endif %}>{{ keyword.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="{% url 'authority-list' %}" class="btn">Clear Search</a>
+        </div>
+    </form>
+{% endblock %}
+
+{% block content %}
+    <div class="results-box">
+        <div class="content-header">
+            <h1>{{ count }} Result{{ count|pluralize }}</h1>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Authority</th>
+                    <th>Key case</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for authority in results %}
+                <tr>
+                    <td>
+                        <a class="result-name" href="{% url 'authority-detail' pk=authority.id %}">{{ authority.display_name }}</a>
+                        <div class="result-meta">
+                            <span class="muted">{% if authority.jurisdiction %}{{ authority.jurisdiction }}{% else %}Jurisdiction unknown{% endif %}{% if authority.is_judicial_review %} &middot; Judicial Review{% endif %}</span>
+                            {% if authority.overview %}<br>{{ authority.overview }}{% endif %}
+                        </div>
+                    </td>
+                    <td class="key-case-cell">
+                        {% if authority.key_case_reason %}<span class="key-case-tag">Key Case</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="empty-state">No authorities found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <div>
+                {% if previous %}
+                    <a href="{{ previous }}">&larr; Previous</a>
+                {% else %}
+                    <span class="disabled">&larr; Previous</span>
+                {% endif %}
+            </div>
+            <div>
+                {% if next %}
+                    <a href="{{ next }}">Next &rarr;</a>
+                {% else %}
+                    <span class="disabled">Next &rarr;</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
