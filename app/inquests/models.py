@@ -24,7 +24,7 @@ class Inquest(models.Model):
     # TODO: make field required.
     presiding_officer = models.ForeignKey(
         'Participant',
-        related_name='inquests',
+        related_name='presiding_officer_inquests',
         on_delete=models.DO_NOTHING,
         null=True,
         blank=True
@@ -52,6 +52,12 @@ class Inquest(models.Model):
         'Party',
         related_name='inquests',
         blank=True,
+    )
+
+    participants = models.ManyToManyField(
+        'Participant',
+        related_name='participant_inquests',
+        blank=True
     )
 
     def __str__(self):
@@ -141,7 +147,7 @@ class Deceased(models.Model):
         PROVINCIAL_IMMIGRATION = 'PROVINCIAL_IMMIGRATION', 'Provincial - Immigration Detention'
 
     first_name = models.CharField(max_length=250)
-    middle_name = models.CharField(max_length=250)
+    middle_name = models.CharField(max_length=250, blank=True)
     last_name = models.CharField(max_length=250)
     age = models.PositiveSmallIntegerField(null=True, blank=True)  # TODO: ensure consistency with DoB.
     date_of_birth = models.DateField(null=True, blank=True)

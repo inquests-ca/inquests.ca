@@ -47,10 +47,29 @@ class Authority(models.Model):
         return self.name
 
     @property
+    def _representative_document(self):
+        """The document used to derive `level`/`date`/`source`: the
+        highest-ranked one with a level set (an authority can have documents
+        from multiple court levels, e.g. as a case is appealed)."""
+        return self.document.filter(level__isnull=False).order_by('-level__rank').first()
+
+    @property
     def level(self):
         """Authority level, derived from highest-ranked document."""
-        document = self.document.filter(level__isnull=False).order_by('-level__rank').first()
+        document = self._representative_document
         return document.level if document else None
+
+    @property
+    def date(self):
+        """Authority date, derived from the same document used for `level`."""
+        document = self._representative_document
+        return document.date if document else None
+
+    @property
+    def source(self):
+        """Authority source, derived from the same document used for `level`."""
+        document = self._representative_document
+        return document.source if document else None
 
 
 class AuthorityLevel(models.Model):

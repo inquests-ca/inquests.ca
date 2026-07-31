@@ -43,6 +43,11 @@ def import_inquest(data: dict) -> Optional[Inquest]:
     inquest.keywords.set(get_keywords(data.get('51_CaseIssues_e')))
     inquest.groups.set(get_groups(data.get('116_RelatedCaseGroups_e')))
     inquest.recommendation_recipients.set(get_parties(data.get('RecRecipients')))
+    inquest.participants.set(
+        get_participants(data.get('InquestCounsel'), role=Role.Category.INQUEST_COUNSEL)
+        + get_participants(data.get('InqPolice'), role=Role.Category.POLICE)
+        + get_participants(data.get('InqInvolved'), role=None)
+    )
 
     return inquest
 
@@ -78,6 +83,51 @@ def get_presiding_officer(name: str) -> Optional[Participant]:
         raise ValueError(f"Presiding officer not found: {first_name} {last_name}")
     except Participant.MultipleObjectsReturned:
         raise ValueError(f"Multiple presiding officers found: {first_name} {last_name}")
+
+
+PERSON_LIST_SPLIT_RE = re.compile(r',(?!\s)')
+
+
+def get_participants(value: str, role: Role.Category = None) -> list[Participant]:
+    # Multiple names are concatenated as 'Last, First,Last, First' -- a
+    # comma with no following space separates people, while the comma
+    # within a single 'Last, First' pair is always followed by a space.
+    if not value:
+        return []
+
+    participants = []
+    for token in PERSON_LIST_SPLIT_RE.split(value):
+        token = token.strip()
+        if not token:
+            continue
+
+        name_parts = token.split(',')
+        if len(name_parts) != 2:
+            raise ValueError(f"Unexpected inquest participant format: {token}")
+
+        last_name, first_name = name_parts
+        first_name = first_name.strip()
+        last_name = last_name.strip()
+        try:
+            if role is not None:
+                participant = Participant.objects.get(
+                    first_name=first_name,
+                    last_name=last_name,
+                    roles__category=role,
+                )
+            else:
+                participant = Participant.objects.get(
+                    first_name=first_name,
+                    last_name=last_name,
+                )
+        except Participant.DoesNotExist:
+            raise ValueError(f"Inquest participant not found: {first_name} {last_name}")
+        except Participant.MultipleObjectsReturned:
+            raise ValueError(f"Multiple inquest participants found: {first_name} {last_name}")
+
+        participants.append(participant)
+
+    return participants
 
 
 def get_parties(value: str) -> list[Party]:

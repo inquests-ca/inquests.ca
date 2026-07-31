@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Authority, AuthorityDocument
+from .models import Authority, AuthorityDocument, AuthorityKeyword
 
 
 class AuthoritySerializer(serializers.ModelSerializer):
@@ -43,14 +43,46 @@ class AuthorityDocumentSerializer(serializers.ModelSerializer):
         ]
 
 
+class AuthorityCitationSerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField()
+    date = serializers.ReadOnlyField()
+    source = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Authority
+        fields = [
+            'id',
+            'display_name',
+            'key_case_reason',
+            'date',
+            'source',
+            'overview',
+            'is_judicial_review',
+        ]
+
+    def get_display_name(self, obj):
+        return str(obj)
+
+
+class AuthorityKeywordSerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AuthorityKeyword
+        fields = ['id', 'display_name']
+
+    def get_display_name(self, obj):
+        return str(obj)
+
+
 class AuthorityDetailSerializer(serializers.ModelSerializer):
     display_name = serializers.SerializerMethodField()
     jurisdiction = serializers.StringRelatedField()
     level = serializers.SerializerMethodField()
-    keywords = serializers.StringRelatedField(many=True)
+    keywords = AuthorityKeywordSerializer(many=True)
     groups = serializers.StringRelatedField(many=True)
-    citations = serializers.StringRelatedField(many=True)
-    cited_by = serializers.StringRelatedField(many=True)
+    citations = AuthorityCitationSerializer(many=True)
+    cited_by = AuthorityCitationSerializer(many=True)
     documents = AuthorityDocumentSerializer(many=True, source='document')
 
     class Meta:

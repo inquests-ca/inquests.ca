@@ -68,7 +68,7 @@
         <div class="detail-section">
             <h2>Keywords</h2>
             <div class="tag-list">
-                {% for keyword in keywords %}<span class="tag">{{ keyword }}</span>{% endfor %}
+                {% for keyword in keywords %}<a class="tag" href="{% url 'inquest-list' %}?keywords={{ keyword.id }}">{{ keyword.display_name }}</a>{% endfor %}
             </div>
         </div>
         {% endif %}
@@ -82,32 +82,73 @@
         </div>
         {% endif %}
 
+        {% if participants %}
+        <div class="detail-section">
+            <h2>Participants ({{ participants|length }})</h2>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60%;">Name</th>
+                        <th style="width: 40%;">Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for participant in participants %}
+                    <tr>
+                        <td class="cell-strong">{{ participant.display_name }}</td>
+                        <td>{{ participant.roles|join:", " }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
         {% if recommendation_recipients %}
         <div class="detail-section">
-            <h2>Recommendation Recipients</h2>
-            <div class="tag-list">
-                {% for recipient in recommendation_recipients %}<span class="tag">{{ recipient }}</span>{% endfor %}
-            </div>
+            <h2>Recommendation Recipients ({{ recommendation_recipients|length }})</h2>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 75%;">Recipient</th>
+                        <th style="width: 25%;"># of Inquests</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for recipient in recommendation_recipients %}
+                    <tr>
+                        <td><a class="result-name" href="{% url 'inquest-list' %}?recipient={{ recipient.id }}">{{ recipient.display_name }}</a></td>
+                        <td>{{ recipient.inquest_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         {% endif %}
 
         <div class="detail-section">
             <h2>Deceased{% if deceased %} ({{ deceased|length }}){% endif %}</h2>
             {% if deceased %}
-            <table>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 22%;">Name</th>
+                        <th style="width: 8%;">Age</th>
+                        <th style="width: 10%;">Sex</th>
+                        <th style="width: 14%;">Manner</th>
+                        <th style="width: 23%;">Reason for Inquest</th>
+                        <th style="width: 23%;">Cause</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {% for person in deceased %}
                     <tr>
-                        <td>
-                            <span class="result-name">{{ person.display_name }}</span>
-                            <div class="result-meta">
-                                <span class="muted">
-                                    {% if person.age %}Age {{ person.age }} &middot; {% endif %}{{ person.sex }} &middot; {{ person.manner }}
-                                </span>
-                                {% if person.reason_for_inquest %}<br>{{ person.reason_for_inquest }}{% endif %}
-                                {% if person.cause %}<br><span class="muted">Cause: {{ person.cause }}{% if person.cause_description %} &mdash; {{ person.cause_description }}{% endif %}</span>{% endif %}
-                            </div>
-                        </td>
+                        <td class="cell-strong">{{ person.display_name }}</td>
+                        <td>{{ person.age|default:"—" }}</td>
+                        <td>{{ person.sex }}</td>
+                        <td>{{ person.manner }}</td>
+                        <td>{{ person.reason_for_inquest|default:"—" }}</td>
+                        <td>{{ person.cause|default:"—" }}{% if person.cause_description %} &mdash; {{ person.cause_description }}{% endif %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -120,7 +161,15 @@
         <div class="detail-section">
             <h2>Documents{% if documents %} ({{ documents|length }}){% endif %}</h2>
             {% if documents %}
-            <table>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Name</th>
+                        <th style="width: 24%;">Type</th>
+                        <th style="width: 16%;">Date</th>
+                        <th style="width: 20%;">Source</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {% for document in documents %}
                     <tr>
@@ -128,12 +177,12 @@
                             {% if document.link %}
                             <a class="result-name" href="{{ document.link }}" target="_blank" rel="noopener">{{ document.name }}</a>
                             {% else %}
-                            <span class="result-name">{{ document.name }}</span>
+                            <span class="cell-strong">{{ document.name }}</span>
                             {% endif %}
-                            <div class="result-meta">
-                                <span class="muted">{{ document.document_type }}{% if document.date %} &middot; {{ document.date }}{% endif %}{% if document.source %} &middot; {{ document.source }}{% endif %}</span>
-                            </div>
                         </td>
+                        <td>{{ document.document_type }}</td>
+                        <td>{{ document.date|default:"—" }}</td>
+                        <td>{{ document.source|default:"—" }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

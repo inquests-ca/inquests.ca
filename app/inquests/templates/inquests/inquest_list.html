@@ -8,14 +8,65 @@
             <label for="q">Search</label>
             <input type="text" id="q" name="q" value="{{ query }}" placeholder="Enter search terms">
         </div>
-        <div class="field">
-            <label for="keywords">Keywords</label>
-            <select id="keywords" name="keywords" multiple size="8">
-                {% for keyword in keywords %}
-                <option value="{{ keyword.id }}" {% if keyword.id in selected_keyword_ids %}selected{% endif %}>{{ keyword.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        <details class="advanced-search" {% if advanced_open %}open{% endif %}>
+            <summary>Advanced Search</summary>
+            <div class="field">
+                <label for="keywords">Keywords</label>
+                <select id="keywords" name="keywords" multiple size="6">
+                    {% for keyword in keywords %}
+                    <option value="{{ keyword.id }}" {% if keyword.id in selected_keyword_ids %}selected{% endif %}>{{ keyword.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="jurisdiction">Province/Territory</label>
+                <select id="jurisdiction" name="jurisdiction" multiple size="5">
+                    {% for jurisdiction in jurisdictions %}
+                    <option value="{{ jurisdiction.id }}" {% if jurisdiction.id in selected_jurisdiction_ids %}selected{% endif %}>{{ jurisdiction.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="multiple_deaths">Multiple Deaths</label>
+                <select id="multiple_deaths" name="multiple_deaths">
+                    <option value="" {% if not multiple_deaths %}selected{% endif %}>Any</option>
+                    <option value="yes" {% if multiple_deaths == 'yes' %}selected{% endif %}>Yes</option>
+                    <option value="no" {% if multiple_deaths == 'no' %}selected{% endif %}>No</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="cause">Cause of Death</label>
+                <select id="cause" name="cause" multiple size="5">
+                    {% for cause in causes %}
+                    <option value="{{ cause.id }}" {% if cause.id in selected_cause_ids %}selected{% endif %}>{{ cause.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="recipient">Recommendation Recipient</label>
+                <select id="recipient" name="recipient" multiple size="5">
+                    {% for recipient in recipients %}
+                    <option value="{{ recipient.id }}" {% if recipient.id in selected_recipient_ids %}selected{% endif %}>{{ recipient.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="presiding_officer">Presiding Officer</label>
+                <select id="presiding_officer" name="presiding_officer" multiple size="5">
+                    {% for officer in presiding_officers %}
+                    <option value="{{ officer.id }}" {% if officer.id in selected_presiding_officer_ids %}selected{% endif %}>{{ officer.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="counsel">Inquest Counsel</label>
+                <select id="counsel" name="counsel" multiple size="5">
+                    {% for person in counsel_options %}
+                    <option value="{{ person.id }}" {% if person.id in selected_counsel_ids %}selected{% endif %}>{{ person.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </details>
         <div class="actions">
             <button type="submit" class="btn btn-primary">Search</button>
             <a href="{% url 'inquest-list' %}" class="btn">Clear Search</a>
@@ -28,34 +79,44 @@
         <div class="content-header">
             <h1>{{ count }} Result{{ count|pluralize }}</h1>
         </div>
-        <table>
+        <table class="results-table">
             <thead>
                 <tr>
-                    <th>Inquest</th>
-                    <th>Key case</th>
+                    <th style="width: 26%;">
+                        <a href="{{ sort_links.name }}">Inquest{% if sort == 'name' %}<span class="sort-arrow">{% if sort_dir == 'asc' %}&#9650;{% else %}&#9660;{% endif %}</span>{% endif %}</a>
+                    </th>
+                    <th style="width: 14%;">
+                        <a href="{{ sort_links.jurisdiction }}">Jurisdiction{% if sort == 'jurisdiction' %}<span class="sort-arrow">{% if sort_dir == 'asc' %}&#9650;{% else %}&#9660;{% endif %}</span>{% endif %}</a>
+                    </th>
+                    <th style="width: 16%;">
+                        <a href="{{ sort_links.presiding_officer }}">Presiding Officer{% if sort == 'presiding_officer' %}<span class="sort-arrow">{% if sort_dir == 'asc' %}&#9650;{% else %}&#9660;{% endif %}</span>{% endif %}</a>
+                    </th>
+                    <th style="width: 12%;">
+                        <a href="{{ sort_links.date }}">Date{% if sort == 'date' %}<span class="sort-arrow">{% if sort_dir == 'asc' %}&#9650;{% else %}&#9660;{% endif %}</span>{% endif %}</a>
+                    </th>
+                    <th style="width: 22%;">Overview</th>
+                    <th style="width: 10%;">
+                        <a href="{{ sort_links.key_case }}">Key Case{% if sort == 'key_case' %}<span class="sort-arrow">{% if sort_dir == 'asc' %}&#9650;{% else %}&#9660;{% endif %}</span>{% endif %}</a>
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 {% for inquest in results %}
                 <tr>
+                    <td><a class="result-name" href="{% url 'inquest-detail' pk=inquest.id %}">{{ inquest.display_name }}</a></td>
+                    <td>{{ inquest.jurisdiction|default:"—" }}</td>
+                    <td>{{ inquest.presiding_officer|default:"—" }}</td>
                     <td>
-                        <a class="result-name" href="{% url 'inquest-detail' pk=inquest.id %}">{{ inquest.display_name }}</a>
-                        <div class="result-meta">
-                            <span class="muted">{{ inquest.jurisdiction }}</span><br>
-                            {% if inquest.presiding_officer %}{{ inquest.presiding_officer }}<br>{% endif %}
-                            <span class="muted">
-                                {% if inquest.start_date %}{{ inquest.start_date }}{% if inquest.end_date and inquest.end_date != inquest.start_date %} &ndash; {{ inquest.end_date }}{% endif %}{% else %}Date pending{% endif %}
-                            </span>
-                            {% if inquest.overview %}<br>{{ inquest.overview }}{% endif %}
-                        </div>
+                        {% if inquest.start_date %}{{ inquest.start_date }}{% if inquest.end_date and inquest.end_date != inquest.start_date %} &ndash; {{ inquest.end_date }}{% endif %}{% else %}&mdash;{% endif %}
                     </td>
+                    <td class="col-overview">{{ inquest.overview|default:"—" }}</td>
                     <td class="key-case-cell">
                         {% if inquest.key_case_reason %}<span class="key-case-tag">Key Case</span>{% endif %}
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="2" class="empty-state">No inquests found.</td>
+                    <td colspan="6" class="empty-state">No inquests found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -68,6 +129,19 @@
                 {% else %}
                     <span class="disabled">&larr; Previous</span>
                 {% endif %}
+            </div>
+            <div class="page-numbers">
+                {% for page_link in page_links %}
+                    {% if page_link.number %}
+                        {% if page_link.is_current %}
+                        <span class="page-number current">{{ page_link.number }}</span>
+                        {% else %}
+                        <a class="page-number" href="{{ page_link.url }}">{{ page_link.number }}</a>
+                        {% endif %}
+                    {% else %}
+                        <span class="page-ellipsis">&hellip;</span>
+                    {% endif %}
+                {% endfor %}
             </div>
             <div>
                 {% if next %}

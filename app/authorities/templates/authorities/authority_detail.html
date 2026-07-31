@@ -65,7 +65,7 @@
         <div class="detail-section">
             <h2>Keywords</h2>
             <div class="tag-list">
-                {% for keyword in keywords %}<span class="tag">{{ keyword }}</span>{% endfor %}
+                {% for keyword in keywords %}<a class="tag" href="{% url 'authority-list' %}?keywords={{ keyword.id }}">{{ keyword.display_name }}</a>{% endfor %}
             </div>
         </div>
         {% endif %}
@@ -81,26 +81,78 @@
 
         {% if citations %}
         <div class="detail-section">
-            <h2>Cites</h2>
-            <div class="tag-list">
-                {% for citation in citations %}<span class="tag">{{ citation }}</span>{% endfor %}
-            </div>
+            <h2>Cites ({{ citations|length }})</h2>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Name</th>
+                        <th style="width: 8%;">Key</th>
+                        <th style="width: 12%;">Date</th>
+                        <th style="width: 16%;">Source</th>
+                        <th style="width: 26%;">Overview</th>
+                        <th style="width: 8%;">JR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for authority in citations %}
+                    <tr>
+                        <td><a class="result-name" href="{% url 'authority-detail' pk=authority.id %}">{{ authority.display_name }}</a></td>
+                        <td>{% if authority.key_case_reason %}<span class="key-case-tag">&#9733;</span>{% endif %}</td>
+                        <td>{{ authority.date|default:"—" }}</td>
+                        <td>{{ authority.source|default:"—" }}</td>
+                        <td class="col-overview">{{ authority.overview|default:"—" }}</td>
+                        <td>{% if authority.is_judicial_review %}Yes{% else %}No{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         {% endif %}
 
         {% if cited_by %}
         <div class="detail-section">
-            <h2>Cited By</h2>
-            <div class="tag-list">
-                {% for citer in cited_by %}<span class="tag">{{ citer }}</span>{% endfor %}
-            </div>
+            <h2>Cited By ({{ cited_by|length }})</h2>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Name</th>
+                        <th style="width: 8%;">Key</th>
+                        <th style="width: 12%;">Date</th>
+                        <th style="width: 16%;">Source</th>
+                        <th style="width: 26%;">Overview</th>
+                        <th style="width: 8%;">JR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for authority in cited_by %}
+                    <tr>
+                        <td><a class="result-name" href="{% url 'authority-detail' pk=authority.id %}">{{ authority.display_name }}</a></td>
+                        <td>{% if authority.key_case_reason %}<span class="key-case-tag">&#9733;</span>{% endif %}</td>
+                        <td>{{ authority.date|default:"—" }}</td>
+                        <td>{{ authority.source|default:"—" }}</td>
+                        <td class="col-overview">{{ authority.overview|default:"—" }}</td>
+                        <td>{% if authority.is_judicial_review %}Yes{% else %}No{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         {% endif %}
 
         <div class="detail-section">
             <h2>Documents{% if documents %} ({{ documents|length }}){% endif %}</h2>
             {% if documents %}
-            <table>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 26%;">Name</th>
+                        <th style="width: 14%;">Type</th>
+                        <th style="width: 24%;">Citation</th>
+                        <th style="width: 12%;">Date</th>
+                        <th style="width: 12%;">Level</th>
+                        <th style="width: 12%;">Source</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {% for document in documents %}
                     <tr>
@@ -108,16 +160,15 @@
                             {% if document.link %}
                             <a class="result-name" href="{{ document.link }}" target="_blank" rel="noopener">{{ document.name }}</a>
                             {% else %}
-                            <span class="result-name">{{ document.name }}</span>
+                            <span class="cell-strong">{{ document.name }}</span>
                             {% endif %}
-                            <div class="result-meta">
-                                <span class="muted">
-                                    {{ document.document_type }}{% if document.date %} &middot; {{ document.date }}{% endif %}{% if document.is_primary %} &middot; Primary{% endif %}
-                                </span>
-                                {% if document.citation %}<br>{{ document.citation }}{% endif %}
-                                <br><span class="muted">{% if document.jurisdiction %}{{ document.jurisdiction }}{% endif %}{% if document.level %} &middot; {{ document.level }}{% endif %}{% if document.source %} &middot; {{ document.source }}{% endif %}</span>
-                            </div>
+                            {% if document.is_primary %}<span class="key-case-tag" title="Primary document">&#9733;</span>{% endif %}
                         </td>
+                        <td>{{ document.document_type }}</td>
+                        <td class="col-overview">{{ document.citation|default:"—" }}</td>
+                        <td>{{ document.date|default:"—" }}</td>
+                        <td>{{ document.level|default:"—" }}</td>
+                        <td>{{ document.source|default:"—" }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

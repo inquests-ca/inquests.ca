@@ -8,14 +8,41 @@
             <label for="q">Search</label>
             <input type="text" id="q" name="q" value="{{ query }}" placeholder="Enter search terms">
         </div>
-        <div class="field">
-            <label for="keywords">Keywords</label>
-            <select id="keywords" name="keywords" multiple size="8">
-                {% for keyword in keywords %}
-                <option value="{{ keyword.id }}" {% if keyword.id in selected_keyword_ids %}selected{% endif %}>{{ keyword.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        <details class="advanced-search" {% if advanced_open %}open{% endif %}>
+            <summary>Advanced Search</summary>
+            <div class="field">
+                <label for="keywords">Keywords</label>
+                <select id="keywords" name="keywords" multiple size="6">
+                    {% for keyword in keywords %}
+                    <option value="{{ keyword.id }}" {% if keyword.id in selected_keyword_ids %}selected{% endif %}>{{ keyword.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="jurisdiction">Jurisdiction</label>
+                <select id="jurisdiction" name="jurisdiction" multiple size="5">
+                    {% for jurisdiction in jurisdictions %}
+                    <option value="{{ jurisdiction.id }}" {% if jurisdiction.id in selected_jurisdiction_ids %}selected{% endif %}>{{ jurisdiction.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="level">Level</label>
+                <select id="level" name="level" multiple size="5">
+                    {% for level in levels %}
+                    <option value="{{ level.id }}" {% if level.id in selected_level_ids %}selected{% endif %}>{{ level.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="judicial_review">Judicial Review</label>
+                <select id="judicial_review" name="judicial_review">
+                    <option value="" {% if not judicial_review %}selected{% endif %}>Any</option>
+                    <option value="yes" {% if judicial_review == 'yes' %}selected{% endif %}>Yes</option>
+                    <option value="no" {% if judicial_review == 'no' %}selected{% endif %}>No</option>
+                </select>
+            </div>
+        </details>
         <div class="actions">
             <button type="submit" class="btn btn-primary">Search</button>
             <a href="{% url 'authority-list' %}" class="btn">Clear Search</a>
@@ -28,30 +55,38 @@
         <div class="content-header">
             <h1>{{ count }} Result{{ count|pluralize }}</h1>
         </div>
-        <table>
+        <table class="results-table">
             <thead>
                 <tr>
-                    <th>Authority</th>
-                    <th>Key case</th>
+                    <th style="width: 30%;">
+                        <a href="{{ sort_links.name }}">Authority{% if sort == 'name' %}<span class="sort-arrow">{% if sort_dir == 'asc' %}&#9650;{% else %}&#9660;{% endif %}</span>{% endif %}</a>
+                    </th>
+                    <th style="width: 16%;">
+                        <a href="{{ sort_links.jurisdiction }}">Jurisdiction{% if sort == 'jurisdiction' %}<span class="sort-arrow">{% if sort_dir == 'asc' %}&#9650;{% else %}&#9660;{% endif %}</span>{% endif %}</a>
+                    </th>
+                    <th style="width: 14%;">
+                        <a href="{{ sort_links.judicial_review }}">Judicial Review{% if sort == 'judicial_review' %}<span class="sort-arrow">{% if sort_dir == 'asc' %}&#9650;{% else %}&#9660;{% endif %}</span>{% endif %}</a>
+                    </th>
+                    <th style="width: 30%;">Overview</th>
+                    <th style="width: 10%;">
+                        <a href="{{ sort_links.key_case }}">Key Case{% if sort == 'key_case' %}<span class="sort-arrow">{% if sort_dir == 'asc' %}&#9650;{% else %}&#9660;{% endif %}</span>{% endif %}</a>
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 {% for authority in results %}
                 <tr>
-                    <td>
-                        <a class="result-name" href="{% url 'authority-detail' pk=authority.id %}">{{ authority.display_name }}</a>
-                        <div class="result-meta">
-                            <span class="muted">{% if authority.jurisdiction %}{{ authority.jurisdiction }}{% else %}Jurisdiction unknown{% endif %}{% if authority.is_judicial_review %} &middot; Judicial Review{% endif %}</span>
-                            {% if authority.overview %}<br>{{ authority.overview }}{% endif %}
-                        </div>
-                    </td>
+                    <td><a class="result-name" href="{% url 'authority-detail' pk=authority.id %}">{{ authority.display_name }}</a></td>
+                    <td>{{ authority.jurisdiction|default:"—" }}</td>
+                    <td>{% if authority.is_judicial_review %}Yes{% else %}No{% endif %}</td>
+                    <td class="col-overview">{{ authority.overview|default:"—" }}</td>
                     <td class="key-case-cell">
                         {% if authority.key_case_reason %}<span class="key-case-tag">Key Case</span>{% endif %}
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="2" class="empty-state">No authorities found.</td>
+                    <td colspan="5" class="empty-state">No authorities found.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -64,6 +99,19 @@
                 {% else %}
                     <span class="disabled">&larr; Previous</span>
                 {% endif %}
+            </div>
+            <div class="page-numbers">
+                {% for page_link in page_links %}
+                    {% if page_link.number %}
+                        {% if page_link.is_current %}
+                        <span class="page-number current">{{ page_link.number }}</span>
+                        {% else %}
+                        <a class="page-number" href="{{ page_link.url }}">{{ page_link.number }}</a>
+                        {% endif %}
+                    {% else %}
+                        <span class="page-ellipsis">&hellip;</span>
+                    {% endif %}
+                {% endfor %}
             </div>
             <div>
                 {% if next %}

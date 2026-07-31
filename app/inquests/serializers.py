@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Deceased, Inquest, InquestDocument
+from .models import Deceased, Inquest, InquestDocument, Participant, Party, InquestKeyword
 
 
 class InquestSerializer(serializers.ModelSerializer):
@@ -61,13 +61,60 @@ class DeceasedSerializer(serializers.ModelSerializer):
         return str(obj)
 
 
+class PartyRecipientSerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField()
+    inquest_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Party
+        fields = ['id', 'display_name', 'inquest_count']
+
+    def get_display_name(self, obj):
+        return str(obj)
+
+    def get_inquest_count(self, obj):
+        # obj.inquests is the reverse M2M back to Inquest -- this is a
+        # separate, unscoped query from whatever prefetched `obj` itself, so
+        # it correctly counts across *all* inquests, not just the one being
+        # viewed. (An annotate()-inside-Prefetch() approach looks tempting
+        # but is wrong here: Django reuses the same join for the prefetch's
+        # own parent-scoping filter and a Count('inquests') annotation,
+        # since both traverse the identical reverse relation, silently
+        # collapsing the count down to just the current inquest.)
+        return obj.inquests.count()
+
+
+class InquestKeywordSerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = InquestKeyword
+        fields = ['id', 'display_name']
+
+    def get_display_name(self, obj):
+        return str(obj)
+
+
+class ParticipantSerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField()
+    roles = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = Participant
+        fields = ['id', 'display_name', 'roles']
+
+    def get_display_name(self, obj):
+        return str(obj)
+
+
 class InquestDetailSerializer(serializers.ModelSerializer):
     display_name = serializers.SerializerMethodField()
     jurisdiction = serializers.StringRelatedField()
     presiding_officer = serializers.StringRelatedField()
-    keywords = serializers.StringRelatedField(many=True)
+    keywords = InquestKeywordSerializer(many=True)
     groups = serializers.StringRelatedField(many=True)
-    recommendation_recipients = serializers.StringRelatedField(many=True)
+    recommendation_recipients = PartyRecipientSerializer(many=True)
+    participants = ParticipantSerializer(many=True)
     documents = InquestDocumentSerializer(many=True)
     deceased = DeceasedSerializer(many=True)
 
@@ -89,6 +136,7 @@ class InquestDetailSerializer(serializers.ModelSerializer):
             'keywords',
             'groups',
             'recommendation_recipients',
+            'participants',
             'documents',
             'deceased',
         ]
