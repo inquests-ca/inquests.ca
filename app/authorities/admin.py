@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Authority, AuthorityDocument, AuthorityKeyword, AuthorityGroup
+from .models import Authority, AuthorityDocument, AuthorityKeyword, AuthorityGroup, AuthorityLevel
 
 
 @admin.register(Authority)
@@ -9,7 +9,8 @@ class AuthorityAdmin(admin.ModelAdmin):
         'id',
         'name',
         'overview',
-        'jurisdiction'
+        'jurisdiction',
+        'level',
     )
     search_fields = (
         'name',
@@ -21,7 +22,7 @@ class AuthorityAdmin(admin.ModelAdmin):
     )
     list_filter = ('jurisdiction',)
     ordering = ('name',)
-    autocomplete_fields = ('authority_citations', 'authority_related')
+    autocomplete_fields = ('citations',)
     filter_horizontal = ('keywords', 'groups')
 
 
@@ -32,16 +33,32 @@ class AuthorityDocumentAdmin(admin.ModelAdmin):
         'name',
         'document_type',
         'source',
+        'citation',
+        'is_primary',
+        'level',
+        'jurisdiction',
         'date',
         'authority',
     )
     search_fields = (
         'name',
         'source',
+        'citation',
     )
-    list_filter = ('document_type',)
+    list_filter = ('document_type', 'level', 'jurisdiction', 'is_primary')
     ordering = ('-date',)
     autocomplete_fields = ('authority',)
+
+
+@admin.register(AuthorityLevel)
+class AuthorityLevelAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'name',
+        'rank',
+    )
+    search_fields = ('name',)
+    ordering = ('-rank',)
 
 
 @admin.register(AuthorityKeyword)

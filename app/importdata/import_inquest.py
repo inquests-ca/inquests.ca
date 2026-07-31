@@ -2,12 +2,12 @@ import re
 from typing import Optional
 
 from common.models import Jurisdiction
-from importdata.helpers import clean_name, strip_html, parse_date, parse_case_keywords, parse_case_groups
+from importdata.helpers import strip_html, parse_date, parse_int, parse_case_keywords, parse_case_groups
 from inquests.models import (
     Inquest,
     InquestGroup,
     InquestKeyword,
-    PresidingOfficer, Party, PartyType,
+    Participant, Role, Party, PartyType,
 )
 
 
@@ -32,9 +32,12 @@ def import_inquest(data: dict) -> Optional[Inquest]:
         key_case_reason=(data.get('032_KeyCaseTxt_e') or '').strip(),
         start_date=parse_date(data.get('21b_InqStartDate_e')),
         end_date=parse_date(data.get('21c_InqEndDate_e')),
+        recommendation_count=parse_int(data.get('Recommendations')),
+        response_to_recommendations=strip_html(data.get('46_Response_to_Recs_e')),
+        sitting_days=parse_int(data.get('21e_Inq_Days_e')),
         jurisdiction=Jurisdiction.objects.get(name=data['12b_Jurisdiction_e']),
         presiding_officer=get_presiding_officer(name=data.get('610_Inq_Presiding_v')),
-        import_metadata=clean_name(data["i_InqNameCalc"]).lower(),
+        import_metadata=data["2_Case_Name_c"].lower(),
     )
 
     inquest.keywords.set(get_keywords(data.get('51_CaseIssues_e')))
@@ -54,9 +57,9 @@ def remove_trailing_metadata(name: str) -> str:
     return trailing_metadata_re.sub("", name)
 
 
-def get_presiding_officer(name: str) -> PresidingOfficer:
+def get_presiding_officer(name: str) -> Optional[Participant]:
     if not name:
-        raise ValueError(f"No presiding officer provided.")
+        return None
 
     name_parts = name.split(',')
     if len(name_parts) != 2:
@@ -66,12 +69,15 @@ def get_presiding_officer(name: str) -> PresidingOfficer:
     first_name = first_name.strip()
     last_name = last_name.strip()
     try:
-        return PresidingOfficer.objects.get(
+        return Participant.objects.get(
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
+            roles__category=Role.Category.POI,
         )
-    except PresidingOfficer.DoesNotExist:
+    except Participant.DoesNotExist:
         raise ValueError(f"Presiding officer not found: {first_name} {last_name}")
+    except Participant.MultipleObjectsReturned:
+        raise ValueError(f"Multiple presiding officers found: {first_name} {last_name}")
 
 
 def get_parties(value: str) -> list[Party]:

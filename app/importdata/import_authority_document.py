@@ -1,8 +1,8 @@
 from typing import Optional
 
 from authorities.models import Authority, AuthorityDocument
-from importdata.helpers import clean_name, parse_date
-from importdata.import_authority import remove_trailing_year
+from importdata.helpers import clean_name, parse_date, parse_yes_no, strip_html
+from importdata.import_authority import get_jurisdiction, get_level, remove_trailing_year
 
 
 DOCUMENT_TYPE_BY_CODE = {
@@ -45,5 +45,9 @@ def import_authority_document(data: dict) -> Optional[AuthorityDocument]:
         date=date,
         source=(data.get('050_Source_c') or '').strip(),
         link=(data.get('81d_PublicLinkURL_c') or '').strip(),
+        citation=strip_html(data.get('3_NeutralCitation_e')),
+        is_primary=parse_yes_no(data.get('71_IsPrimaryDoc_c')),
+        level=get_level(data.get('053_AuthRankCalc')),
+        jurisdiction=get_jurisdiction(data.get('051_Jurisdiction')),
         authority=authority,
     )

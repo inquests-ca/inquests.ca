@@ -5,12 +5,12 @@ from django.db.models.functions import Lower
 class Authority(models.Model):
     id = models.AutoField(primary_key=True)
 
-    name = models.CharField(max_length=255)
-    overview = models.CharField(max_length=255)
+    name = models.CharField(max_length=250)
+    overview = models.CharField(max_length=500)
     summary = models.CharField(max_length=5000)
-    notes = models.CharField(max_length=1000, blank=True)
+    notes = models.CharField(max_length=5000, blank=True)
     quotes = models.CharField(max_length=5000, blank=True)
-    key_case_reason = models.CharField(max_length=255, blank=True)
+    key_case_reason = models.CharField(max_length=250, blank=True)
     is_judicial_review = models.BooleanField()
 
     jurisdiction = models.ForeignKey(
@@ -21,17 +21,10 @@ class Authority(models.Model):
         blank=True
     )
 
-    authority_citations = models.ManyToManyField(
+    citations = models.ManyToManyField(
         'self',
         symmetrical=False,
-        related_name='authority_cited_by',
-        blank=True,
-    )
-
-    authority_related = models.ManyToManyField(
-        'self',
-        symmetrical=False,
-        related_name='authority_related_by',
+        related_name='cited_by',
         blank=True,
     )
 
@@ -53,6 +46,26 @@ class Authority(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def level(self):
+        """Authority level, derived from highest-ranked document."""
+        document = self.document.filter(level__isnull=False).order_by('-level__rank').first()
+        return document.level if document else None
+
+
+class AuthorityLevel(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    name = models.CharField(max_length=250, unique=True)
+    rank = models.SmallIntegerField(unique=True)
+
+    class Meta:
+        verbose_name = 'level'
+        verbose_name_plural = 'levels'
+
+    def __str__(self):
+        return self.name
+
 
 class AuthorityDocument(models.Model):
     id = models.AutoField(primary_key=True)
@@ -65,11 +78,29 @@ class AuthorityDocument(models.Model):
         MEDIA = 'MEDIA', 'Media'
         SUMMARY = 'SUMMARY', 'Summary'
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=250)
     document_type = models.CharField(max_length=50, choices=DocumentType.choices)
     date = models.DateField(null=True, blank=True)
-    source = models.CharField(max_length=255)
-    link = models.CharField(max_length=255)
+    source = models.CharField(max_length=250)
+    link = models.CharField(max_length=500)
+    citation = models.CharField(max_length=500, blank=True)
+    is_primary = models.BooleanField(default=False)
+
+    level = models.ForeignKey(
+        'AuthorityLevel',
+        related_name='documents',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+
+    jurisdiction = models.ForeignKey(
+        'common.Jurisdiction',
+        related_name='authority_documents',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
 
     authority = models.ForeignKey(
         'Authority',
@@ -90,10 +121,10 @@ class AuthorityKeyword(models.Model):
         FACTOR = 'FACTOR', 'Factor'
         EVIDENCE = 'EVIDENCE', 'Evidence'
 
-    name = models.CharField(max_length=255, blank=True)
-    category = models.CharField(max_length=255, choices=Category.choices)
-    description = models.CharField(max_length=255, blank=True)
-    synonyms = models.CharField(max_length=255, blank=True)
+    name = models.CharField(max_length=250, blank=True)
+    category = models.CharField(max_length=250, choices=Category.choices)
+    description = models.CharField(max_length=500, blank=True)
+    synonyms = models.CharField(max_length=250, blank=True)
 
     class Meta:
         verbose_name = 'keyword'
@@ -107,20 +138,25 @@ class AuthorityKeyword(models.Model):
         ]
 
     def __str__(self):
+        category = AuthorityKeyword.Category(self.category).label
         if not self.name:
-            return self.category
-        return f"{self.category}-{self.name}"
+            return category
+        return f"{category}-{self.name}"
 
 
 class AuthorityGroup(models.Model):
     id = models.AutoField(primary_key=True)
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=250)
     notes = models.CharField(max_length=5000)
 
     class Meta:
         verbose_name = 'group'
         verbose_name_plural = 'groups'
+
+        constraints = [
+            models.UniqueConstraint(Lower("name"), name="authority_group_unique_lower_name"),
+        ]
 
     def __str__(self):
         return self.name

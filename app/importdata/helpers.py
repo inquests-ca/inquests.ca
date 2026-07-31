@@ -21,6 +21,16 @@ def parse_yes_no(value):
     return (value or '').strip().lower() == 'yes'
 
 
+def parse_int(value):
+    value = (value or '').strip()
+    if not value:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
 def strip_html(value):
     return HTML_TAG_RE.sub('', value or '').strip()
 

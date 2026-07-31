@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.functions import Lower
 
@@ -5,21 +6,28 @@ from django.db.models.functions import Lower
 class Inquest(models.Model):
     id = models.AutoField(primary_key=True)
 
-    name = models.CharField(max_length=255, blank=True)
-    overview = models.CharField(max_length=255)
-    summary = models.CharField(max_length=5000)
-    key_case_reason = models.CharField(max_length=255, blank=True)
+    name = models.CharField(max_length=250, blank=True)
+    overview = models.CharField(max_length=250)
+    summary = models.CharField(max_length=15000)
+    key_case_reason = models.CharField(max_length=250, blank=True)
 
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
+    recommendation_count = models.PositiveSmallIntegerField(null=True, blank=True)
+    response_to_recommendations = models.CharField(max_length=5000, blank=True)
+    sitting_days = models.PositiveSmallIntegerField(null=True, blank=True)
+
     # TODO: once imports are completed, remove.
     import_metadata = models.CharField(null=True, blank=True)
 
+    # TODO: make field required.
     presiding_officer = models.ForeignKey(
-        'PresidingOfficer',
+        'Participant',
         related_name='inquests',
-        on_delete=models.PROTECT,
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True
     )
 
     jurisdiction = models.ForeignKey(
@@ -62,6 +70,13 @@ class Inquest(models.Model):
 
         return string
 
+    def clean(self):
+        super().clean()
+        if self.presiding_officer_id and not self.presiding_officer.roles.filter(category=Role.Category.POI).exists():
+            raise ValidationError({
+                'presiding_officer': 'Participant must have the presiding officer (POI) role.',
+            })
+
 
 class InquestDocument(models.Model):
     id = models.AutoField(primary_key=True)
@@ -73,11 +88,11 @@ class InquestDocument(models.Model):
         SCOPE = 'SCOPE', 'Scope'
         MEDIA = 'MEDIA', 'Media'
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=250)
     document_type = models.CharField(max_length=50, choices=DocumentType.choices)
-    date = models.DateField()
-    source = models.CharField(max_length=255)
-    link = models.CharField(max_length=255)
+    date = models.DateField(null=True, blank=True)  # TODO: make field required.
+    source = models.CharField(max_length=250)
+    link = models.CharField(max_length=500)
 
     inquest = models.ForeignKey(
         'Inquest',
@@ -98,7 +113,7 @@ class Deceased(models.Model):
     class Sex(models.TextChoices):
         MALE = 'M', 'Male'
         FEMALE = 'F', 'Female'
-        OTHER = 'O', 'Other'
+        UNSPECIFIED = 'U', 'Unspecified/Undetermined'
 
     class MannerOfDeath(models.TextChoices):
         ACCIDENT = 'ACCIDENT', 'Accident'
@@ -109,13 +124,44 @@ class Deceased(models.Model):
         PENDING = 'PENDING', 'Pending'
         OTHER = 'OTHER', 'Other'
 
-    first_name = models.CharField(max_length=255)
-    middle_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
+    class ReasonForInquest(models.TextChoices):
+        PSYCHIATRIC_RESTRAINT = 'PSYCHIATRIC_RESTRAINT', 'Psychiatric Restraint'
+        CUSTODY_INMATE = 'CUSTODY_INMATE', 'Custody-Inmate'
+        CUSTODY_POLICE = 'CUSTODY_POLICE', 'Custody-Police'
+        CONSTRUCTION = 'CONSTRUCTION', 'Construction'
+        MINING = 'MINING', 'Mining'
+        CHILD_CYFSA = 'CHILD_CYFSA', 'Child (CYFSA)'
+        DISCRETIONARY = 'DISCRETIONARY', 'Discretionary inquest'
+        PENDING = 'PENDING', 'Pending inquest'
+
+    class InmateType(models.TextChoices):
+        FEDERAL = 'FEDERAL', 'Federal'
+        PROVINCIAL_REMAND = 'PROVINCIAL_REMAND', 'Provincial - On Remand'
+        PROVINCIAL_SENTENCED = 'PROVINCIAL_SENTENCED', 'Provincial - Serving Sentence'
+        PROVINCIAL_IMMIGRATION = 'PROVINCIAL_IMMIGRATION', 'Provincial - Immigration Detention'
+
+    first_name = models.CharField(max_length=250)
+    middle_name = models.CharField(max_length=250)
+    last_name = models.CharField(max_length=250)
+    age = models.PositiveSmallIntegerField(null=True, blank=True)  # TODO: ensure consistency with DoB.
     date_of_birth = models.DateField(null=True, blank=True)
     date_of_death = models.DateField(null=True, blank=True)
     sex = models.CharField(max_length=50, choices=Sex.choices)
     manner = models.CharField(max_length=50, choices=MannerOfDeath.choices)
+    reason_for_inquest = models.CharField(  # TODO: make field required.
+        max_length=50,
+        choices=ReasonForInquest.choices,
+        null=True,
+        blank=True
+    )
+    cause_description = models.CharField(max_length=500, blank=True)
+    # TODO: not currently populated by the importer.
+    inmate_type = models.CharField(
+        max_length=50,
+        choices=InmateType.choices,
+        null=True,
+        blank=True,
+    )
 
     cause = models.ForeignKey(
         'CauseOfDeath',
@@ -124,10 +170,13 @@ class Deceased(models.Model):
         blank=True,
     )
 
+    # If field is null, inquest for deceased is pending.
     inquest = models.ForeignKey(
         'Inquest',
-        on_delete=models.CASCADE,
-        related_name='deceased'
+        related_name='deceased',
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -140,7 +189,7 @@ class Deceased(models.Model):
 class CauseOfDeath(models.Model):
     id = models.AutoField(primary_key=True)
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=250)
 
     class Meta:
         verbose_name_plural = 'causes of death'
@@ -152,7 +201,7 @@ class CauseOfDeath(models.Model):
 class PartyType(models.Model):
     id = models.AutoField(primary_key=True)
 
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=250, unique=True)
     description = models.CharField(max_length=500, blank=True)
 
     def __str__(self):
@@ -162,8 +211,8 @@ class PartyType(models.Model):
 class Party(models.Model):
     id = models.AutoField(primary_key=True)
 
-    name = models.CharField(max_length=255, blank=True)
-    also_known_as = models.CharField(max_length=255, blank=True)
+    name = models.CharField(max_length=250, blank=True)
+    also_known_as = models.CharField(max_length=250, blank=True)
     notes = models.CharField(max_length=1000, blank=True)
 
     party_type = models.ForeignKey(
@@ -199,10 +248,10 @@ class InquestKeyword(models.Model):
         POLICE = 'POLICE', 'Police'
         WORKPLACE = 'WORKPLACE', 'Workplace'
 
-    name = models.CharField(max_length=255, blank=True)
-    category = models.CharField(max_length=255, choices=Category.choices)
-    description = models.CharField(max_length=255, blank=True)
-    synonyms = models.CharField(max_length=255, blank=True)
+    name = models.CharField(max_length=250, blank=True)
+    category = models.CharField(max_length=250, choices=Category.choices)
+    description = models.CharField(max_length=500, blank=True)
+    synonyms = models.CharField(max_length=250, blank=True)
 
     class Meta:
         verbose_name = 'keyword'
@@ -213,16 +262,53 @@ class InquestKeyword(models.Model):
         ]
 
     def __str__(self):
+        category = InquestKeyword.Category(self.category).label
         if not self.name:
-            return self.category
-        return f"{self.category}-{self.name}"
+            return category
+        return f"{category}-{self.name}"
 
 
-class PresidingOfficer(models.Model):
+class Role(models.Model):
     id = models.AutoField(primary_key=True)
 
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
+    class Category(models.TextChoices):
+        POI = 'POI', 'Presiding Officer'
+        INQUEST_COUNSEL = 'INQUEST_COUNSEL', 'Inquest Counsel'
+        PARTY_COUNSEL = 'PARTY_COUNSEL', 'Party Counsel'
+        POLICE = 'POLICE', 'Police'
+        PROGRAM_ADMINISTRATOR = 'PROGRAM_ADMINISTRATOR', 'Program Administrator'
+        SUPPORT = 'SUPPORT', 'Support'
+        OTHER = 'OTHER', 'Other'
+
+    name = models.CharField(max_length=250, blank=True)
+    category = models.CharField(max_length=50, choices=Category.choices)
+
+    class Meta:
+        verbose_name = 'role'
+        verbose_name_plural = 'roles'
+
+        constraints = [
+            models.UniqueConstraint(Lower("name"), "category", name="role_unique_lower_name_category"),
+        ]
+
+    def __str__(self):
+        category = Role.Category(self.category).label
+        if not self.name:
+            return category
+        return f"{category}-{self.name}"
+
+
+class Participant(models.Model):
+    id = models.AutoField(primary_key=True)
+
+    first_name = models.CharField(max_length=250)
+    last_name = models.CharField(max_length=250)
+
+    roles = models.ManyToManyField(
+        'Role',
+        related_name='participants',
+        blank=True,
+    )
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -231,12 +317,16 @@ class PresidingOfficer(models.Model):
 class InquestGroup(models.Model):
     id = models.AutoField(primary_key=True)
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=250)
     notes = models.CharField(max_length=5000)
 
     class Meta:
         verbose_name = 'group'
         verbose_name_plural = 'groups'
+
+        constraints = [
+            models.UniqueConstraint(Lower("name"), name="inquest_group_unique_lower_name"),
+        ]
 
     def __str__(self):
         return self.name

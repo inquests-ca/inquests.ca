@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import Inquest, InquestDocument, Deceased, InquestKeyword, PresidingOfficer, \
-    CauseOfDeath, InquestGroup, PartyType, Party, Party
+from .models import Inquest, InquestDocument, Deceased, InquestKeyword, Participant, Role, \
+    CauseOfDeath, InquestGroup, PartyType, Party
 
 
 @admin.register(Inquest)
@@ -48,13 +48,15 @@ class DeceasedAdmin(admin.ModelAdmin):
         'id',
         'first_name',
         'last_name',
+        'age',
         'cause',
         'manner',
         'inquest',
     )
     search_fields = (
-        'name',
-        'cause',
+        'first_name',
+        'last_name',
+        'cause__name',
         'manner',
     )
     list_filter = ('cause', 'manner')
@@ -119,11 +121,23 @@ class InquestGroupAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-@admin.register(PresidingOfficer)
-class PresidingOfficerAdmin(admin.ModelAdmin):
+@admin.register(Participant)
+class ParticipantAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'first_name',
         'last_name',
     )
     search_fields = ('first_name', 'last_name')
+    filter_horizontal = ('roles',)
+
+
+@admin.register(Role)
+class RoleAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'name',
+        'category',
+    )
+    search_fields = ('name',)
+    list_filter = ('category',)
