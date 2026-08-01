@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{{ display_name }} | Inquests.ca{% endblock %}
+
+{% block layout %}
+<div class="layout">
+    <main class="content">
+        {% block content %}
+    <div class="results-box">
+        <div class="detail-header">
+            <h1>{{ display_name }}</h1>
+        </div>
+        <dl class="detail-facts" style="padding-bottom: 1.25rem;">
+            <div>
+                <dt>Sex</dt>
+                <dd>{{ sex }}</dd>
+            </div>
+            <div>
+                <dt>Manner</dt>
+                <dd>{{ manner }}</dd>
+            </div>
+            <div>
+                <dt>Reason for inquest</dt>
+                <dd>{{ reason_for_inquest|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt>Inmate type</dt>
+                <dd>{{ inmate_type|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt>Cause of Death</dt>
+                <dd>{{ person.cause|default:"—" }}{% if person.cause_description %} &mdash; {{ person.cause_description }}{% endif %}</dd>
+            </div>
+        </dl>
+    </div>
+        {% endblock %}
+    </main>
+</div>
+{% endblock %}

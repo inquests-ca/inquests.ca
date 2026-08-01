@@ -12,7 +12,7 @@
             <summary>Advanced Search</summary>
             <div class="field">
                 <label for="keywords">Keywords</label>
-                <select id="keywords" name="keywords" multiple size="6">
+                <select id="keywords" name="keywords" multiple size="6" class="js-multiselect">
                     {% for keyword in keywords %}
                     <option value="{{ keyword.id }}" {% if keyword.id in selected_keyword_ids %}selected{% endif %}>{{ keyword.label }}</option>
                     {% endfor %}
@@ -20,17 +20,19 @@
             </div>
             <div class="field">
                 <label for="jurisdiction">Jurisdiction</label>
-                <select id="jurisdiction" name="jurisdiction" multiple size="5">
+                <select id="jurisdiction" name="jurisdiction">
+                    <option value="">Any</option>
                     {% for jurisdiction in jurisdictions %}
-                    <option value="{{ jurisdiction.id }}" {% if jurisdiction.id in selected_jurisdiction_ids %}selected{% endif %}>{{ jurisdiction.label }}</option>
+                    <option value="{{ jurisdiction.id }}" {% if jurisdiction.id == selected_jurisdiction_id %}selected{% endif %}>{{ jurisdiction.label }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="field">
                 <label for="level">Level</label>
-                <select id="level" name="level" multiple size="5">
+                <select id="level" name="level">
+                    <option value="">Any</option>
                     {% for level in levels %}
-                    <option value="{{ level.id }}" {% if level.id in selected_level_ids %}selected{% endif %}>{{ level.label }}</option>
+                    <option value="{{ level.id }}" {% if level.id == selected_level_id %}selected{% endif %}>{{ level.label }}</option>
                     {% endfor %}
                 </select>
             </div>

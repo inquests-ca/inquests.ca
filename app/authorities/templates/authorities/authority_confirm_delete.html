@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Delete {{ object }} | Inquests.ca{% endblock %}
+
+{% block layout %}
+<div class="layout">
+    <main class="content">
+        {% block content %}
+    <div class="results-box">
+        <div class="detail-header">
+            <div class="detail-heading">
+                <h1>Delete Authority</h1>
+            </div>
+        </div>
+        <div class="detail-section">
+            <p>Are you sure you want to permanently delete <strong>{{ object }}</strong>? This cannot be undone.</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="edit-actions">
+                <button type="submit" class="btn btn-inline btn-delete">Delete</button>
+                <a href="{% url 'authority-detail' pk=object.pk %}" class="btn btn-inline">Cancel</a>
+            </div>
+        </form>
+    </div>
+        {% endblock %}
+    </main>
+</div>
+{% endblock %}

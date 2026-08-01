@@ -8,8 +8,13 @@
         {% block content %}
     <div class="results-box">
         <div class="detail-header">
-            <h1>{{ display_name }}</h1>
-            {% if key_case_reason %}<span class="key-case-tag">Key Case</span>{% endif %}
+            <div class="detail-heading">
+                <h1>{{ display_name }}</h1>
+                {% if key_case_reason %}<span class="key-case-tag">Key Case</span>{% endif %}
+            </div>
+            {% if user.is_authenticated %}
+            <a href="{% url 'authority-edit' pk=id %}" class="btn btn-edit">Edit</a>
+            {% endif %}
         </div>
         <dl class="detail-facts" style="padding-bottom: 1.25rem;">
             <div>

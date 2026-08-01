@@ -38,12 +38,20 @@ class KeywordSearchMixin:
     def get_queryset(self):
         queryset = super().get_queryset()
 
+        # Chaining one `.filter()` call per word (rather than matching the
+        # whole query as a single substring) requires each word to be found
+        # -- possibly in different fields -- so "Smith John" matches a
+        # record with first_name=John, last_name=Smith just as well as
+        # "John Smith" does.
         query = self.request.query_params.get('q', '').strip()
-        if query and self.search_fields:
-            condition = Q()
-            for field in self.search_fields:
-                condition |= Q(**{f'{field}__icontains': query})
-            queryset = queryset.filter(condition)
+        words = query.split()
+        if words and self.search_fields:
+            for word in words:
+                condition = Q()
+                for field in self.search_fields:
+                    condition |= Q(**{f'{field}__icontains': word})
+                queryset = queryset.filter(condition)
+            queryset = queryset.distinct()
 
         # Chaining one `.filter()` call per keyword (rather than a single
         # `keywords__id__in=keyword_ids` call) requires each selected

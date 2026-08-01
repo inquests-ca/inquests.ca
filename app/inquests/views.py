@@ -1,12 +1,16 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
+from django.urls import reverse, reverse_lazy
+from django.views.generic.edit import DeleteView, UpdateView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.renderers import TemplateHTMLRenderer
 
 from common.models import Jurisdiction
 from common.views import ActiveTabMixin, KeywordSearchMixin
-from .models import CauseOfDeath, Inquest, InquestKeyword, Participant, Party, Role
-from .serializers import InquestDetailSerializer, InquestSerializer
+from .forms import InquestForm
+from .models import CauseOfDeath, Inquest, InquestKeyword, Participant, Party, Role, Deceased
+from .serializers import InquestDetailSerializer, InquestSerializer, DeceasedSerializer
 
 
 class InquestPagination(PageNumberPagination):
@@ -46,9 +50,9 @@ class InquestListView(KeywordSearchMixin, ListAPIView):
         queryset = super().get_queryset()
         params = self.request.query_params
 
-        jurisdiction_ids = params.getlist('jurisdiction')
-        if jurisdiction_ids:
-            queryset = queryset.filter(jurisdiction__id__in=jurisdiction_ids)
+        jurisdiction_id = params.get('jurisdiction')
+        if jurisdiction_id:
+            queryset = queryset.filter(jurisdiction__id=jurisdiction_id)
 
         multiple_deaths = params.get('multiple_deaths')
         if multiple_deaths in ('yes', 'no'):
@@ -58,21 +62,21 @@ class InquestListView(KeywordSearchMixin, ListAPIView):
             else:
                 queryset = queryset.filter(_deceased_count__lte=1)
 
-        cause_ids = params.getlist('cause')
-        if cause_ids:
-            queryset = queryset.filter(deceased__cause__id__in=cause_ids).distinct()
+        cause_id = params.get('cause')
+        if cause_id:
+            queryset = queryset.filter(deceased__cause__id=cause_id).distinct()
 
-        recipient_ids = params.getlist('recipient')
-        if recipient_ids:
-            queryset = queryset.filter(recommendation_recipients__id__in=recipient_ids).distinct()
+        recipient_id = params.get('recipient')
+        if recipient_id:
+            queryset = queryset.filter(recommendation_recipients__id=recipient_id).distinct()
 
-        presiding_officer_ids = params.getlist('presiding_officer')
-        if presiding_officer_ids:
-            queryset = queryset.filter(presiding_officer__id__in=presiding_officer_ids)
+        presiding_officer_id = params.get('presiding_officer')
+        if presiding_officer_id:
+            queryset = queryset.filter(presiding_officer__id=presiding_officer_id)
 
-        counsel_ids = params.getlist('counsel')
-        if counsel_ids:
-            queryset = queryset.filter(participants__id__in=counsel_ids).distinct()
+        counsel_id = params.get('counsel')
+        if counsel_id:
+            queryset = queryset.filter(participants__id=counsel_id).distinct()
 
         return queryset
 
@@ -84,7 +88,7 @@ class InquestListView(KeywordSearchMixin, ListAPIView):
             {'id': jurisdiction.id, 'label': jurisdiction.name}
             for jurisdiction in Jurisdiction.objects.filter(does_conduct_inquests=True).order_by('name')
         ]
-        response.data['selected_jurisdiction_ids'] = self._selected_ids(params, 'jurisdiction')
+        response.data['selected_jurisdiction_id'] = self._selected_id(params, 'jurisdiction')
 
         response.data['multiple_deaths'] = params.get('multiple_deaths', '')
 
@@ -92,46 +96,47 @@ class InquestListView(KeywordSearchMixin, ListAPIView):
             {'id': cause.id, 'label': cause.name}
             for cause in CauseOfDeath.objects.order_by('name')
         ]
-        response.data['selected_cause_ids'] = self._selected_ids(params, 'cause')
+        response.data['selected_cause_id'] = self._selected_id(params, 'cause')
 
         response.data['recipients'] = [
             {'id': party.id, 'label': str(party)}
             for party in Party.objects.select_related('party_type').order_by('party_type__name', 'name')
         ]
-        response.data['selected_recipient_ids'] = self._selected_ids(params, 'recipient')
+        response.data['selected_recipient_id'] = self._selected_id(params, 'recipient')
 
         response.data['presiding_officers'] = [
             {'id': participant.id, 'label': str(participant)}
             for participant in Participant.objects.filter(roles__category=Role.Category.POI)
                 .distinct().order_by('last_name', 'first_name')
         ]
-        response.data['selected_presiding_officer_ids'] = self._selected_ids(params, 'presiding_officer')
+        response.data['selected_presiding_officer_id'] = self._selected_id(params, 'presiding_officer')
 
         response.data['counsel_options'] = [
             {'id': participant.id, 'label': str(participant)}
             for participant in Participant.objects.filter(roles__category=Role.Category.INQUEST_COUNSEL)
                 .distinct().order_by('last_name', 'first_name')
         ]
-        response.data['selected_counsel_ids'] = self._selected_ids(params, 'counsel')
+        response.data['selected_counsel_id'] = self._selected_id(params, 'counsel')
 
         response.data['advanced_open'] = bool(
             response.data['selected_keyword_ids']
-            or response.data['selected_jurisdiction_ids']
+            or response.data['selected_jurisdiction_id']
             or response.data['multiple_deaths']
-            or response.data['selected_cause_ids']
-            or response.data['selected_recipient_ids']
-            or response.data['selected_presiding_officer_ids']
-            or response.data['selected_counsel_ids']
+            or response.data['selected_cause_id']
+            or response.data['selected_recipient_id']
+            or response.data['selected_presiding_officer_id']
+            or response.data['selected_counsel_id']
         )
 
         return response
 
     @staticmethod
-    def _selected_ids(params, name):
-        return [int(value) for value in params.getlist(name) if value.isdigit()]
+    def _selected_id(params, name):
+        value = params.get(name)
+        return int(value) if value and value.isdigit() else None
 
 
-class InquestDetailView(ActiveTabMixin, RetrieveAPIView):
+class InquestDetailView(RetrieveAPIView):
     queryset = Inquest.objects.select_related('jurisdiction', 'presiding_officer').prefetch_related(
         'keywords', 'groups', 'recommendation_recipients', 'participants', 'participants__roles',
         'documents', 'deceased', 'deceased__cause',
@@ -140,4 +145,24 @@ class InquestDetailView(ActiveTabMixin, RetrieveAPIView):
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'inquests/inquest_detail.html'
 
-    active_tab = 'inquests'
+
+class InquestUpdateView(LoginRequiredMixin, UpdateView):
+    model = Inquest
+    form_class = InquestForm
+    template_name = 'inquests/inquest_edit.html'
+
+    def get_success_url(self):
+        return reverse('inquest-detail', kwargs={'pk': self.object.pk})
+
+
+class InquestDeleteView(LoginRequiredMixin, DeleteView):
+    model = Inquest
+    template_name = 'inquests/inquest_confirm_delete.html'
+    success_url = reverse_lazy('inquest-list')
+
+
+class DeceasedDetailView(ActiveTabMixin, RetrieveAPIView):
+    queryset = Deceased.objects.select_related('cause', 'inquest')
+    serializer_class = DeceasedSerializer
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'inquests/deceased_detail.html'

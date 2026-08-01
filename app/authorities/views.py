@@ -1,9 +1,13 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse, reverse_lazy
+from django.views.generic.edit import DeleteView, UpdateView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.renderers import TemplateHTMLRenderer
 
 from common.models import Jurisdiction
 from common.views import ActiveTabMixin, KeywordSearchMixin
+from .forms import AuthorityForm
 from .models import Authority, AuthorityKeyword, AuthorityLevel
 from .serializers import AuthorityDetailSerializer, AuthoritySerializer
 
@@ -42,13 +46,13 @@ class AuthorityListView(KeywordSearchMixin, ListAPIView):
         queryset = super().get_queryset()
         params = self.request.query_params
 
-        jurisdiction_ids = params.getlist('jurisdiction')
-        if jurisdiction_ids:
-            queryset = queryset.filter(jurisdiction__id__in=jurisdiction_ids)
+        jurisdiction_id = params.get('jurisdiction')
+        if jurisdiction_id:
+            queryset = queryset.filter(jurisdiction__id=jurisdiction_id)
 
-        level_ids = params.getlist('level')
-        if level_ids:
-            queryset = queryset.filter(document__level__id__in=level_ids).distinct()
+        level_id = params.get('level')
+        if level_id:
+            queryset = queryset.filter(document__level__id=level_id).distinct()
 
         judicial_review = params.get('judicial_review')
         if judicial_review in ('yes', 'no'):
@@ -64,31 +68,32 @@ class AuthorityListView(KeywordSearchMixin, ListAPIView):
             {'id': jurisdiction.id, 'label': jurisdiction.name}
             for jurisdiction in Jurisdiction.objects.filter(authorities__isnull=False).distinct().order_by('name')
         ]
-        response.data['selected_jurisdiction_ids'] = self._selected_ids(params, 'jurisdiction')
+        response.data['selected_jurisdiction_id'] = self._selected_id(params, 'jurisdiction')
 
         response.data['levels'] = [
             {'id': level.id, 'label': level.name}
             for level in AuthorityLevel.objects.order_by('-rank')
         ]
-        response.data['selected_level_ids'] = self._selected_ids(params, 'level')
+        response.data['selected_level_id'] = self._selected_id(params, 'level')
 
         response.data['judicial_review'] = params.get('judicial_review', '')
 
         response.data['advanced_open'] = bool(
             response.data['selected_keyword_ids']
-            or response.data['selected_jurisdiction_ids']
-            or response.data['selected_level_ids']
+            or response.data['selected_jurisdiction_id']
+            or response.data['selected_level_id']
             or response.data['judicial_review']
         )
 
         return response
 
     @staticmethod
-    def _selected_ids(params, name):
-        return [int(value) for value in params.getlist(name) if value.isdigit()]
+    def _selected_id(params, name):
+        value = params.get(name)
+        return int(value) if value and value.isdigit() else None
 
 
-class AuthorityDetailView(ActiveTabMixin, RetrieveAPIView):
+class AuthorityDetailView(RetrieveAPIView):
     queryset = Authority.objects.select_related('jurisdiction').prefetch_related(
         'keywords', 'groups',
         'citations', 'citations__document', 'citations__document__level',
@@ -99,4 +104,17 @@ class AuthorityDetailView(ActiveTabMixin, RetrieveAPIView):
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'authorities/authority_detail.html'
 
-    active_tab = 'authorities'
+
+class AuthorityUpdateView(LoginRequiredMixin, UpdateView):
+    model = Authority
+    form_class = AuthorityForm
+    template_name = 'authorities/authority_edit.html'
+
+    def get_success_url(self):
+        return reverse('authority-detail', kwargs={'pk': self.object.pk})
+
+
+class AuthorityDeleteView(LoginRequiredMixin, DeleteView):
+    model = Authority
+    template_name = 'authorities/authority_confirm_delete.html'
+    success_url = reverse_lazy('authority-list')

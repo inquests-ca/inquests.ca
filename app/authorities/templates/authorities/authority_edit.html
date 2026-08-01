@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ object }} | Inquests.ca{% endblock %}
+
+{% block layout %}
+<div class="layout">
+    <main class="content">
+        {% block content %}
+    <div class="results-box">
+        <form method="post" class="search-form" novalidate>
+            {% csrf_token %}
+            <div class="detail-header">
+                <div class="detail-heading">
+                    <h1>Edit Authority</h1>
+                </div>
+            </div>
+
+            {{ form.non_field_errors }}
+
+            <div class="detail-section">
+                <h2>Details</h2>
+                <div class="edit-grid">
+                    <div class="field">
+                        <label for="{{ form.name.id_for_label }}">Name</label>
+                        {{ form.name }}
+                        {{ form.name.errors }}
+                    </div>
+                    <div class="field">
+                        <label for="{{ form.jurisdiction.id_for_label }}">Jurisdiction</label>
+                        {{ form.jurisdiction }}
+                        {{ form.jurisdiction.errors }}
+                    </div>
+                </div>
+                <div class="field field-checkbox">
+                    <label for="{{ form.is_judicial_review.id_for_label }}">
+                        {{ form.is_judicial_review }} Judicial Review
+                    </label>
+                    {{ form.is_judicial_review.errors }}
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>Overview</h2>
+                <div class="field">
+                    {{ form.overview }}
+                    {{ form.overview.errors }}
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>Summary</h2>
+                <div class="field">
+                    {{ form.summary }}
+                    {{ form.summary.errors }}
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>Key Case Reason</h2>
+                <div class="field">
+                    {{ form.key_case_reason }}
+                    {{ form.key_case_reason.errors }}
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>Notes</h2>
+                <div class="field">
+                    {{ form.notes }}
+                    {{ form.notes.errors }}
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>Quotes</h2>
+                <div class="field">
+                    {{ form.quotes }}
+                    {{ form.quotes.errors }}
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>Keywords</h2>
+                <div class="field">
+                    {{ form.keywords }}
+                    {{ form.keywords.errors }}
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>Related Groups</h2>
+                <div class="field">
+                    {{ form.groups }}
+                    {{ form.groups.errors }}
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h2>Cites</h2>
+                <div class="field">
+                    {{ form.citations }}
+                    {{ form.citations.errors }}
+                </div>
+            </div>
+
+            <div class="edit-actions">
+                <button type="submit" class="btn btn-primary btn-inline">Save</button>
+                <a href="{% url 'authority-detail' pk=object.pk %}" class="btn btn-inline">Cancel</a>
+                <a href="{% url 'authority-delete' pk=object.pk %}" class="btn btn-inline btn-delete">Delete</a>
+            </div>
+        </form>
+    </div>
+        {% endblock %}
+    </main>
+</div>
+{% endblock %}

@@ -18,14 +18,23 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from authorities.views import AuthorityDetailView, AuthorityListView
-from inquests.views import InquestDetailView, InquestListView
+from authorities.views import (
+    AuthorityDeleteView, AuthorityDetailView, AuthorityListView, AuthorityUpdateView,
+)
+from inquests.views import (
+    InquestDeleteView, InquestDetailView, InquestListView, InquestUpdateView, DeceasedDetailView,
+)
 
 urlpatterns = [
     path('inquests/', InquestListView.as_view(), name='inquest-list'),
     path('inquests/<int:pk>/', InquestDetailView.as_view(), name='inquest-detail'),
+    path('inquests/<int:pk>/edit/', InquestUpdateView.as_view(), name='inquest-edit'),
+    path('inquests/<int:pk>/delete/', InquestDeleteView.as_view(), name='inquest-delete'),
     path('authorities/', AuthorityListView.as_view(), name='authority-list'),
     path('authorities/<int:pk>/', AuthorityDetailView.as_view(), name='authority-detail'),
+    path('authorities/<int:pk>/edit/', AuthorityUpdateView.as_view(), name='authority-edit'),
+    path('authorities/<int:pk>/delete/', AuthorityDeleteView.as_view(), name='authority-delete'),
+    path('deceased/<int:pk>/', DeceasedDetailView.as_view(), name='deceased-detail'),
     path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('admin/', admin.site.urls),

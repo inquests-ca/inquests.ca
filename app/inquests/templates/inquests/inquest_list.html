@@ -12,7 +12,7 @@
             <summary>Advanced Search</summary>
             <div class="field">
                 <label for="keywords">Keywords</label>
-                <select id="keywords" name="keywords" multiple size="6">
+                <select id="keywords" name="keywords" multiple size="6" class="js-multiselect">
                     {% for keyword in keywords %}
                     <option value="{{ keyword.id }}" {% if keyword.id in selected_keyword_ids %}selected{% endif %}>{{ keyword.label }}</option>
                     {% endfor %}
@@ -20,9 +20,10 @@
             </div>
             <div class="field">
                 <label for="jurisdiction">Province/Territory</label>
-                <select id="jurisdiction" name="jurisdiction" multiple size="5">
+                <select id="jurisdiction" name="jurisdiction">
+                    <option value="">Any</option>
                     {% for jurisdiction in jurisdictions %}
-                    <option value="{{ jurisdiction.id }}" {% if jurisdiction.id in selected_jurisdiction_ids %}selected{% endif %}>{{ jurisdiction.label }}</option>
+                    <option value="{{ jurisdiction.id }}" {% if jurisdiction.id == selected_jurisdiction_id %}selected{% endif %}>{{ jurisdiction.label }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -36,33 +37,37 @@
             </div>
             <div class="field">
                 <label for="cause">Cause of Death</label>
-                <select id="cause" name="cause" multiple size="5">
+                <select id="cause" name="cause">
+                    <option value="">Any</option>
                     {% for cause in causes %}
-                    <option value="{{ cause.id }}" {% if cause.id in selected_cause_ids %}selected{% endif %}>{{ cause.label }}</option>
+                    <option value="{{ cause.id }}" {% if cause.id == selected_cause_id %}selected{% endif %}>{{ cause.label }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="field">
                 <label for="recipient">Recommendation Recipient</label>
-                <select id="recipient" name="recipient" multiple size="5">
+                <select id="recipient" name="recipient">
+                    <option value="">Any</option>
                     {% for recipient in recipients %}
-                    <option value="{{ recipient.id }}" {% if recipient.id in selected_recipient_ids %}selected{% endif %}>{{ recipient.label }}</option>
+                    <option value="{{ recipient.id }}" {% if recipient.id == selected_recipient_id %}selected{% endif %}>{{ recipient.label }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="field">
                 <label for="presiding_officer">Presiding Officer</label>
-                <select id="presiding_officer" name="presiding_officer" multiple size="5">
+                <select id="presiding_officer" name="presiding_officer">
+                    <option value="">Any</option>
                     {% for officer in presiding_officers %}
-                    <option value="{{ officer.id }}" {% if officer.id in selected_presiding_officer_ids %}selected{% endif %}>{{ officer.label }}</option>
+                    <option value="{{ officer.id }}" {% if officer.id == selected_presiding_officer_id %}selected{% endif %}>{{ officer.label }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="field">
                 <label for="counsel">Inquest Counsel</label>
-                <select id="counsel" name="counsel" multiple size="5">
+                <select id="counsel" name="counsel">
+                    <option value="">Any</option>
                     {% for person in counsel_options %}
-                    <option value="{{ person.id }}" {% if person.id in selected_counsel_ids %}selected{% endif %}>{{ person.label }}</option>
+                    <option value="{{ person.id }}" {% if person.id == selected_counsel_id %}selected{% endif %}>{{ person.label }}</option>
                     {% endfor %}
                 </select>
             </div>
