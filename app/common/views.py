@@ -122,16 +122,3 @@ class KeywordSearchMixin:
         response.data['total_pages'] = total_pages
 
         return response
-
-
-class ActiveTabMixin:
-    """Injects `active_tab` into a DRF RetrieveAPIView's response, so the
-    detail page templates can highlight the right sidebar toggle option.
-    """
-
-    active_tab = None
-
-    def retrieve(self, request, *args, **kwargs):
-        response = super().retrieve(request, *args, **kwargs)
-        response.data['active_tab'] = self.active_tab
-        return response

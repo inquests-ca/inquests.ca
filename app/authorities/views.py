@@ -6,7 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.renderers import TemplateHTMLRenderer
 
 from common.models import Jurisdiction
-from common.views import ActiveTabMixin, KeywordSearchMixin
+from common.views import KeywordSearchMixin
 from .forms import AuthorityForm
 from .models import Authority, AuthorityKeyword, AuthorityLevel
 from .serializers import AuthorityDetailSerializer, AuthoritySerializer

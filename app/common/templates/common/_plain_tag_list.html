@@ -1,0 +1,8 @@
+{% if items %}
+<div class="detail-section">
+    <h2>{{ title }}</h2>
+    <div class="tag-list">
+        {% for item in items %}<span class="tag">{{ item }}</span>{% endfor %}
+    </div>
+</div>
+{% endif %}

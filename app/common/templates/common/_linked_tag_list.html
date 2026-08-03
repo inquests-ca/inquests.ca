@@ -1,0 +1,8 @@
+{% if items %}
+<div class="detail-section">
+    <h2>{{ title }}</h2>
+    <div class="tag-list">
+        {% for item in items %}<a class="tag" href="{% url list_url_name %}?{{ param_name }}={{ item.id }}">{{ item.display_name }}</a>{% endfor %}
+    </div>
+</div>
+{% endif %}

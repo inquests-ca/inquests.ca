@@ -7,7 +7,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.renderers import TemplateHTMLRenderer
 
 from common.models import Jurisdiction
-from common.views import ActiveTabMixin, KeywordSearchMixin
+from common.views import KeywordSearchMixin
 from .forms import InquestForm
 from .models import CauseOfDeath, Inquest, InquestKeyword, Participant, Party, Role, Deceased
 from .serializers import InquestDetailSerializer, InquestSerializer, DeceasedSerializer
@@ -161,8 +161,8 @@ class InquestDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('inquest-list')
 
 
-class DeceasedDetailView(ActiveTabMixin, RetrieveAPIView):
+class DeceasedDetailView(RetrieveAPIView):
     queryset = Deceased.objects.select_related('cause', 'inquest')
     serializer_class = DeceasedSerializer
     renderer_classes = [TemplateHTMLRenderer]
-    template_name = 'inquests/deceased_detail.html'
+    template_name = 'deceased/deceased_detail.html'

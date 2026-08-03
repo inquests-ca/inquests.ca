@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load form_tags %}
 
 {% block title %}Edit {{ object }} | Inquests.ca{% endblock %}
 
@@ -20,107 +21,24 @@
             <div class="detail-section">
                 <h2>Details</h2>
                 <div class="edit-grid">
-                    <div class="field">
-                        <label for="{{ form.name.id_for_label }}">Name</label>
-                        {{ form.name }}
-                        {{ form.name.errors }}
-                    </div>
-                    <div class="field">
-                        <label for="{{ form.jurisdiction.id_for_label }}">Jurisdiction</label>
-                        {{ form.jurisdiction }}
-                        {{ form.jurisdiction.errors }}
-                    </div>
-                    <div class="field">
-                        <label for="{{ form.presiding_officer.id_for_label }}">Presiding Officer</label>
-                        {{ form.presiding_officer }}
-                        {{ form.presiding_officer.errors }}
-                    </div>
-                    <div class="field">
-                        <label for="{{ form.start_date.id_for_label }}">Start Date</label>
-                        {{ form.start_date }}
-                        {{ form.start_date.errors }}
-                    </div>
-                    <div class="field">
-                        <label for="{{ form.end_date.id_for_label }}">End Date</label>
-                        {{ form.end_date }}
-                        {{ form.end_date.errors }}
-                    </div>
-                    <div class="field">
-                        <label for="{{ form.sitting_days.id_for_label }}">Sitting Days</label>
-                        {{ form.sitting_days }}
-                        {{ form.sitting_days.errors }}
-                    </div>
-                    <div class="field">
-                        <label for="{{ form.recommendation_count.id_for_label }}">Recommendations</label>
-                        {{ form.recommendation_count }}
-                        {{ form.recommendation_count.errors }}
-                    </div>
+                    {% render_field form.name "Name" %}
+                    {% render_field form.jurisdiction "Jurisdiction" %}
+                    {% render_field form.presiding_officer "Presiding Officer" %}
+                    {% render_field form.start_date "Start Date" %}
+                    {% render_field form.end_date "End Date" %}
+                    {% render_field form.sitting_days "Sitting Days" %}
+                    {% render_field form.recommendation_count "Recommendations" %}
                 </div>
             </div>
 
-            <div class="detail-section">
-                <h2>Overview</h2>
-                <div class="field">
-                    {{ form.overview }}
-                    {{ form.overview.errors }}
-                </div>
-            </div>
-
-            <div class="detail-section">
-                <h2>Summary</h2>
-                <div class="field">
-                    {{ form.summary }}
-                    {{ form.summary.errors }}
-                </div>
-            </div>
-
-            <div class="detail-section">
-                <h2>Key Case Reason</h2>
-                <div class="field">
-                    {{ form.key_case_reason }}
-                    {{ form.key_case_reason.errors }}
-                </div>
-            </div>
-
-            <div class="detail-section">
-                <h2>Response to Recommendations</h2>
-                <div class="field">
-                    {{ form.response_to_recommendations }}
-                    {{ form.response_to_recommendations.errors }}
-                </div>
-            </div>
-
-            <div class="detail-section">
-                <h2>Keywords</h2>
-                <div class="field">
-                    {{ form.keywords }}
-                    {{ form.keywords.errors }}
-                </div>
-            </div>
-
-            <div class="detail-section">
-                <h2>Related Groups</h2>
-                <div class="field">
-                    {{ form.groups }}
-                    {{ form.groups.errors }}
-                </div>
-            </div>
-
-            <div class="detail-section">
-                <h2>Recommendation Recipients</h2>
-                <div class="field">
-                    {{ form.recommendation_recipients }}
-                    {{ form.recommendation_recipients.errors }}
-                </div>
-            </div>
-
-            <div class="detail-section">
-                <h2>Participants</h2>
-                <div class="field">
-                    {{ form.participants }}
-                    {{ form.participants.errors }}
-                </div>
-            </div>
+            {% form_section "Overview" form.overview %}
+            {% form_section "Summary" form.summary %}
+            {% form_section "Key Case Reason" form.key_case_reason %}
+            {% form_section "Response to Recommendations" form.response_to_recommendations %}
+            {% form_section "Keywords" form.keywords %}
+            {% form_section "Related Groups" form.groups %}
+            {% form_section "Recommendation Recipients" form.recommendation_recipients %}
+            {% form_section "Participants" form.participants %}
 
             <div class="edit-actions">
                 <button type="submit" class="btn btn-primary btn-inline">Save</button>

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load detail_tags %}
 
 {% block title %}{{ display_name }} | Inquests.ca{% endblock %}
 
@@ -31,58 +32,14 @@
             </div>
         </dl>
 
-        {% if overview %}
-        <div class="detail-section">
-            <h2>Overview</h2>
-            <p>{{ overview }}</p>
-        </div>
-        {% endif %}
+        {% detail_paragraph "Overview" overview %}
+        {% detail_paragraph "Summary" summary %}
+        {% detail_paragraph "Key Case Reason" key_case_reason %}
+        {% detail_paragraph "Notes" notes %}
+        {% detail_paragraph "Quotes" quotes %}
 
-        {% if summary %}
-        <div class="detail-section">
-            <h2>Summary</h2>
-            <p>{{ summary }}</p>
-        </div>
-        {% endif %}
-
-        {% if key_case_reason %}
-        <div class="detail-section">
-            <h2>Key Case Reason</h2>
-            <p>{{ key_case_reason }}</p>
-        </div>
-        {% endif %}
-
-        {% if notes %}
-        <div class="detail-section">
-            <h2>Notes</h2>
-            <p>{{ notes }}</p>
-        </div>
-        {% endif %}
-
-        {% if quotes %}
-        <div class="detail-section">
-            <h2>Quotes</h2>
-            <p>{{ quotes }}</p>
-        </div>
-        {% endif %}
-
-        {% if keywords %}
-        <div class="detail-section">
-            <h2>Keywords</h2>
-            <div class="tag-list">
-                {% for keyword in keywords %}<a class="tag" href="{% url 'authority-list' %}?keywords={{ keyword.id }}">{{ keyword.display_name }}</a>{% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        {% if groups %}
-        <div class="detail-section">
-            <h2>Related Groups</h2>
-            <div class="tag-list">
-                {% for group in groups %}<span class="tag">{{ group }}</span>{% endfor %}
-            </div>
-        </div>
-        {% endif %}
+        {% linked_tag_list "Keywords" keywords "authority-list" %}
+        {% plain_tag_list "Related Groups" groups %}
 
         {% if citations %}
         <div class="detail-section">
