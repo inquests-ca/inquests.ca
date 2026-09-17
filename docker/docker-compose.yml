@@ -9,6 +9,7 @@ services:
       - db
     volumes:
       - ../app/:/usr/src/app/
+      - ../data/:/usr/src/data/
     env_file: .env.dev
     ports:
       - "8000:8000"
