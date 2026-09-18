@@ -3,6 +3,6 @@
 cd ./app
 
 python manage.py migrate
-python manage.py createsuperuser --noinput
+python manage.py createsuperuser --username admin --email admin@inquests.ca --noinput
 
 exec "$@"
