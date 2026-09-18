@@ -20,11 +20,11 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data/
     environment:
-      # These values should match those passed to Django (i.e., .env.dev).
-      POSTGRES_DB: inquests
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       PGDATA: /var/lib/postgresql/data/
+    env_file: .env.dev
     ports:
       - "5432:5432"
 
