@@ -11,3 +11,6 @@ wheels/
 
 # Data used to populate database
 data/
+
+# .env file used for validating prod configuration
+docker/.env

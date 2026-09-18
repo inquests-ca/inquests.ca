@@ -1,0 +1,48 @@
+name: inquests
+
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: ./docker/app.Dockerfile
+    entrypoint: ["uv", "run", "./docker/docker-entrypoint.prod.sh"]
+    command: ["uv", "run", "gunicorn", "--bind", "0.0.0.0:8000", "project.wsgi:application"]
+    restart: unless-stopped
+    depends_on:
+      - db
+    volumes:
+      - static_files:/usr/src/app/staticfiles
+    env_file: .env
+    expose:
+      - "8000"
+
+  db:
+    image: postgres:15.4
+    restart: unless-stopped
+    volumes:
+      - db_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/
+    env_file: .env
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - static_files:/srv/static:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  db_data:
+  static_files:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,10 @@
+# TODO: enable TLS, then replace :80 with domain name.
+
+:80 {
+	handle_path /static/* {
+		root * /srv/static
+		file_server
+	}
+
+	reverse_proxy app:8000
+}
