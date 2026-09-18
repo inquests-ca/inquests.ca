@@ -19,13 +19,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-im#tlgx_%y#xkoi8*(ohv$-eeqsww03tyepmib(83jg6nix*g6'
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+DEBUG = False
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+ALLOWED_HOSTS = [host for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if host]
 
-ALLOWED_HOSTS = []
+# TODO: revisit once a reverse proxy terminating HTTPS is in front of this.
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 
 
 # Application definition
@@ -123,6 +125,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
 # Auth
@@ -131,3 +134,7 @@ STATIC_URL = 'static/'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'inquest-list'
 LOGOUT_REDIRECT_URL = 'inquest-list'
+
+
+if os.getenv("DJANGO_DEVELOPMENT") == "true":
+    from project.settings_dev import *  # noqa: F401, F403

@@ -10,7 +10,8 @@ ENV UV_NO_DEV=1
 WORKDIR /usr/src
 RUN uv sync --locked
 
-# Copy entrypoint script and update permissions to make it executable.
+# Copy entrypoint scripts and update permissions to make them executable.
 RUN ["chmod", "+x", "./docker/docker-entrypoint.sh"]
+RUN ["chmod", "+x", "./docker/docker-entrypoint.prod.sh"]
 
 ENTRYPOINT ["uv", "run", "./docker/docker-entrypoint.sh"]
