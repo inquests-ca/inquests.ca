@@ -20,7 +20,7 @@ This starts Postgres, then the entrypoint (`docker/docker-entrypoint.sh`) runs `
 
 ### Running locally without Docker
 
-Django reads `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` from the environment with no defaults (`project/settings.py`), so they must be exported first (see `docker/.env.dev` for dev values; use `DB_HOST=localhost` if Postgres isn't in Docker).
+Django reads `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT` from the environment with no defaults (`project/settings.py`), so they must be exported first (see `docker/.env.dev` for dev values; use `POSTGRES_HOST=localhost` if Postgres isn't in Docker).
 
 ```
 uv run python manage.py migrate
