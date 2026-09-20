@@ -1,0 +1,12 @@
+# Copy to terraform.tfvars and adjust. terraform.tfvars itself is
+# gitignored, since that's where anything environment-specific belongs.
+
+git_repo_url = "https://github.com/<you>/<repo>.git" # required, no default
+
+# aws_region           = "ca-central-1"
+# project_name         = "inquests"
+# instance_type        = "t4g.micro"
+# root_volume_size_gb  = 30
+# allowed_http_cidrs   = ["0.0.0.0/0"]
+# db_name              = "inquests"
+# db_user              = "inquests_app"
