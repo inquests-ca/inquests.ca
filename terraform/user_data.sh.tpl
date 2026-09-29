@@ -9,7 +9,6 @@ systemctl enable --now amazon-ssm-agent
 
 dnf install -y docker git unzip
 systemctl enable --now docker
-usermod -aG docker ssm-user
 
 mkdir -p /usr/local/lib/docker/cli-plugins
 curl -fsSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" \
