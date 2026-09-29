@@ -1,8 +1,6 @@
-# TODO: switch to TLS.
-
 resource "aws_security_group" "app" {
   name_prefix = "${var.project_name}-app-"
-  description = "Inbound HTTP for app."
+  description = "Inbound HTTP/HTTPS for app."
   vpc_id      = aws_vpc.main.id
 
   tags = {
@@ -14,6 +12,7 @@ resource "aws_security_group" "app" {
   }
 }
 
+# Open port 80 for cert issuance and HTTP->HTTPS redirect.
 resource "aws_vpc_security_group_ingress_rule" "http" {
   for_each = toset(var.allowed_http_cidrs)
 
@@ -22,6 +21,29 @@ resource "aws_vpc_security_group_ingress_rule" "http" {
   from_port         = 80
   to_port           = 80
   ip_protocol       = "tcp"
+  cidr_ipv4         = each.value
+}
+
+resource "aws_vpc_security_group_ingress_rule" "https" {
+  for_each = toset(var.allowed_http_cidrs)
+
+  security_group_id = aws_security_group.app.id
+  description       = "HTTPS"
+  from_port         = 443
+  to_port           = 443
+  ip_protocol       = "tcp"
+  cidr_ipv4         = each.value
+}
+
+# HTTP/3 (QUIC; enabled automatically by Caddy).
+resource "aws_vpc_security_group_ingress_rule" "https_quic" {
+  for_each = toset(var.allowed_http_cidrs)
+
+  security_group_id = aws_security_group.app.id
+  description       = "HTTPS (HTTP/3 / QUIC)"
+  from_port         = 443
+  to_port           = 443
+  ip_protocol       = "udp"
   cidr_ipv4         = each.value
 }
 

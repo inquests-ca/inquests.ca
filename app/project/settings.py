@@ -24,10 +24,13 @@ DEBUG = False
 
 ALLOWED_HOSTS = [host for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if host]
 
-# TODO: revisit once a reverse proxy terminating HTTPS is in front of this.
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+# Caddy terminates TLS and proxies plain HTTP to this app.
+# Caddy always overwrites the X-Forwarded-Proto header.
+# https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#defaults
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 
 # Application definition

@@ -45,6 +45,7 @@ POSTGRES_PORT=5432
 DJANGO_SECRET_KEY='$DJANGO_SECRET_KEY'
 DJANGO_ALLOWED_HOSTS=${allowed_hosts}
 APP_IMAGE=${ecr_repository_url}:latest
+APP_HOSTNAME=${app_hostname}
 ENV
 chmod 600 docker/.env
 

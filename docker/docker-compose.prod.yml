@@ -31,11 +31,15 @@ services:
       - app
     ports:
       - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3 (QUIC)
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - static_files:/srv/static:ro
       - caddy_data:/data
       - caddy_config:/config
+    environment:
+      APP_HOSTNAME: ${APP_HOSTNAME}
 
 volumes:
   db_data:

@@ -1,6 +1,4 @@
-# TODO: enable TLS, then replace :80 with domain name.
-
-:80 {
+{$APP_HOSTNAME} {
 	handle_path /static/* {
 		root * /srv/static
 		file_server

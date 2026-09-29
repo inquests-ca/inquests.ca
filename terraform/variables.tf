@@ -23,7 +23,7 @@ variable "root_volume_size_gb" {
 }
 
 variable "allowed_http_cidrs" {
-  description = "CIDR blocks allowed to reach the app on port 80. Defaults to the whole internet, since this is a public site."
+  description = "CIDR blocks allowed to reach the app on ports 80 and 443. Defaults to the whole internet, since this is a public site."
   type        = list(string)
   default     = ["0.0.0.0/0"]
 }

@@ -43,6 +43,7 @@ resource "aws_instance" "app" {
     db_name            = var.db_name
     db_user            = var.db_user
     allowed_hosts      = var.app_hostname
+    app_hostname       = var.app_hostname
     ecr_repository_url = aws_ecr_repository.app.repository_url
   })
   user_data_replace_on_change = true
