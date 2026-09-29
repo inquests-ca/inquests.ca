@@ -49,3 +49,15 @@ variable "git_repo_url" {
   EOT
   type        = string
 }
+
+variable "domain_name" {
+  description = "Route 53 public hosted zone to create the app's DNS record in. Must already exist in this AWS account."
+  type        = string
+  default     = "michaeleden.ca"
+}
+
+variable "app_hostname" {
+  description = "Full hostname the app is reachable at. Must be domain_name itself or a subdomain of it."
+  type        = string
+  default     = "inquests.michaeleden.ca"
+}
