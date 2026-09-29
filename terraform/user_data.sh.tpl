@@ -2,9 +2,14 @@
 
 set -euxo pipefail
 
+# Install SSM agent (not shipped in minimal AMI).
+# https://docs.aws.amazon.com/systems-manager/latest/userguide/agent-install-al2.html
+dnf install -y "https://s3.${aws_region}.amazonaws.com/amazon-ssm-${aws_region}/latest/linux_arm64/amazon-ssm-agent.rpm"
+systemctl enable --now amazon-ssm-agent
+
 dnf install -y docker git unzip
 systemctl enable --now docker
-usermod -aG docker ec2-user
+usermod -aG docker ssm-user
 
 mkdir -p /usr/local/lib/docker/cli-plugins
 curl -fsSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" \

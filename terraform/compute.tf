@@ -1,11 +1,13 @@
-# For EC2 AMI, use Amazon Linux 2023, arm64 (compatible with t4g instances)
+# For EC2 AMI, use Amazon Linux 2023 minimal, arm64 (compatible with
+# t4g instances).
+# https://docs.aws.amazon.com/linux/al2023/ug/AMI-minimal-and-standard-differences.html
 data "aws_ami" "al2023_arm64" {
   most_recent = true
   owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["al2023-ami-*-arm64"]
+    values = ["al2023-ami-minimal-*-arm64"]
   }
 
   filter {
@@ -33,12 +35,6 @@ resource "aws_instance" "app" {
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.app.id]
   iam_instance_profile   = aws_iam_instance_profile.instance.name
-
-  # Normally no SSH keypair -- shell access is via SSM Session Manager (see
-  # iam.tf). key_name below is TEMPORARY, for troubleshooting SSM
-  # connectivity (see ssh_debug.tf); remove it along with that file once
-  # no longer needed.
-  key_name = aws_key_pair.ssh_debug.key_name
 
   user_data = templatefile("${path.module}/user_data.sh.tpl", {
     git_repo_url       = var.git_repo_url

@@ -49,14 +49,3 @@ variable "git_repo_url" {
   EOT
   type        = string
 }
-
-variable "ssh_debug_source_ip" {
-  description = <<-EOT
-    TEMPORARY, troubleshooting only (see ssh_debug.tf): a single IP
-    address (no /32 suffix -- that's added automatically) allowed to SSH
-    into the instance on port 22. Required: there is no default, so this
-    has to be deliberately provided. Remove ssh_debug.tf, this variable,
-    and the `key_name` line in compute.tf once no longer needed.
-  EOT
-  type        = string
-}
