@@ -29,15 +29,3 @@ output "ecr_build_and_push_commands" {
     "docker push ${aws_ecr_repository.app.repository_url}:latest",
   ])
 }
-
-# TEMPORARY, troubleshooting only -- see ssh_debug.tf.
-output "ssh_debug_private_key" {
-  description = "Save with: terraform output -raw ssh_debug_private_key > debug_key.pem && chmod 600 debug_key.pem"
-  value       = tls_private_key.ssh_debug.private_key_openssh
-  sensitive   = true
-}
-
-output "ssh_debug_connect_command" {
-  description = "Run after saving the private key per ssh_debug_private_key above."
-  value       = "ssh -i debug_key.pem ec2-user@${aws_eip.app.public_ip}"
-}

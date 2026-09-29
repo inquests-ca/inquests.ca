@@ -10,6 +10,3 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 .terraform.tfstate.lock.info
-
-# Private keys
-*.pem
