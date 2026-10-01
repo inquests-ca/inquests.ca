@@ -34,3 +34,12 @@ output "ecr_build_and_push_commands" {
     "docker push ${aws_ecr_repository.app.repository_url}:latest",
   ])
 }
+
+output "data_import_upload_and_presign_commands" {
+  description = "Upload 'data' directory for a one-time import and generate presigned URL."
+  value = join("\n", [
+    "tar czf /tmp/data.tar.gz -C ${path.module}/.. data",
+    "aws s3 cp /tmp/data.tar.gz s3://${aws_s3_bucket.data_import.id}/data.tar.gz --region ${var.aws_region}",
+    "aws s3 presign s3://${aws_s3_bucket.data_import.id}/data.tar.gz --region ${var.aws_region} --expires-in 3600",
+  ])
+}
