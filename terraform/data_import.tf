@@ -1,7 +1,7 @@
 # Bucket containing data to be imported into database.
 # Accessed via pre-signed URL.
 resource "aws_s3_bucket" "data_import" {
-  bucket = "${var.project_name}-data-import-${data.aws_caller_identity.current.account_id}"
+  bucket        = "${var.project_name}-data-import-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
 }
 
