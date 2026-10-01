@@ -29,4 +29,4 @@ WORKDIR /usr/src
 RUN ["chmod", "+x", "./docker/docker-entrypoint.sh"]
 RUN ["chmod", "+x", "./docker/docker-entrypoint.prod.sh"]
 
-ENTRYPOINT ["uv", "run", "./docker/docker-entrypoint.sh"]
+ENTRYPOINT ["uv", "run", "./docker/docker-entrypoint.prod.sh"]

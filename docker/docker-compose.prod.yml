@@ -6,7 +6,6 @@ services:
     # output) -- not built here. APP_IMAGE comes from .env, written by
     # user_data.
     image: ${APP_IMAGE}
-    entrypoint: ["uv", "run", "./docker/docker-entrypoint.prod.sh"]
     command: ["uv", "run", "gunicorn", "--bind", "0.0.0.0:8000", "project.wsgi:application"]
     restart: unless-stopped
     depends_on:
