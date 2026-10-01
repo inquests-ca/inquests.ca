@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.6"
+  required_version = ">= 1.10"
 
   required_providers {
     aws = {
@@ -16,9 +16,12 @@ terraform {
     }
   }
 
-  # Local state to start with -- fine for a single-maintainer project.
-  # Move to an S3 backend (with state locking) if more than one person
-  # ever needs to run `terraform apply`, or simply for durability.
+  backend "s3" {
+    bucket       = "inquests-terraform-state-426879027288"
+    key          = "terraform.tfstate"
+    region       = "ca-central-1"
+    use_lockfile = true
+  }
 }
 
 provider "aws" {
